@@ -8,6 +8,7 @@ class BalanceInfo {
   final DateTime lastUpdated;
   final BalanceStatus status;
   final Map<String, dynamic>? rawResponse;
+  final bool supportsBalance;
 
   const BalanceInfo({
     required this.providerId,
@@ -19,6 +20,7 @@ class BalanceInfo {
     required this.lastUpdated,
     required this.status,
     this.rawResponse,
+    this.supportsBalance = true,
   });
 
   factory BalanceInfo.fromJson(Map<String, dynamic> json) {
@@ -39,6 +41,7 @@ class BalanceInfo {
         orElse: () => BalanceStatus.unknown,
       ),
       rawResponse: json['rawResponse'] as Map<String, dynamic>?,
+      supportsBalance: json['supportsBalance'] as bool? ?? true,
     );
   }
 
@@ -52,6 +55,7 @@ class BalanceInfo {
         'lastUpdated': lastUpdated.toIso8601String(),
         'status': status.name,
         'rawResponse': rawResponse,
+        'supportsBalance': supportsBalance,
       };
 
   BalanceInfo copyWith({
@@ -64,6 +68,7 @@ class BalanceInfo {
     DateTime? lastUpdated,
     BalanceStatus? status,
     Map<String, dynamic>? rawResponse,
+    bool? supportsBalance,
   }) {
     return BalanceInfo(
       providerId: providerId ?? this.providerId,
@@ -75,6 +80,7 @@ class BalanceInfo {
       lastUpdated: lastUpdated ?? this.lastUpdated,
       status: status ?? this.status,
       rawResponse: rawResponse ?? this.rawResponse,
+      supportsBalance: supportsBalance ?? this.supportsBalance,
     );
   }
 }

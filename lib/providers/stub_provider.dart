@@ -43,6 +43,7 @@ class StubProvider extends AIProvider {
               'Key validation only.',
           'statusCode': resp.statusCode,
         },
+        supportsBalance: false,
       );
     } catch (e) {
       return BalanceInfo(
@@ -52,6 +53,7 @@ class StubProvider extends AIProvider {
         currency: 'N/A',
         lastUpdated: DateTime.now(),
         status: BalanceStatus.unavailable,
+        supportsBalance: false,
       );
     }
   }

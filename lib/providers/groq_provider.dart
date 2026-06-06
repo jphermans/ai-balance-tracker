@@ -28,6 +28,7 @@ class GroqProvider extends AIProvider {
           currency: 'USD',
           lastUpdated: DateTime.now(),
           status: BalanceStatus.active,
+          supportsBalance: false,
           rawResponse: {'note': 'Groq does not expose balance via API. Key is valid.'},
         );
       } else if (resp.statusCode == 401) {
@@ -38,6 +39,7 @@ class GroqProvider extends AIProvider {
           currency: 'USD',
           lastUpdated: DateTime.now(),
           status: BalanceStatus.invalidKey,
+          supportsBalance: false,
         );
       }
 
@@ -50,6 +52,7 @@ class GroqProvider extends AIProvider {
         currency: 'USD',
         lastUpdated: DateTime.now(),
         status: handleError(e),
+        supportsBalance: false,
       );
     }
   }
