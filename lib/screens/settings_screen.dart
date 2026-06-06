@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../state/app_state.dart';
 import '../models/provider_config.dart';
-import '../widgets/pin_setup_dialog.dart';
 import '../services/pin_service.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -92,7 +92,7 @@ class SettingsScreen extends ConsumerWidget {
                           ),
                         )
                       : FilledButton.tonal(
-                          onPressed: () => _setupPin(context, ref),
+                          onPressed: () => context.push('/pin-setup'),
                           child: const Text('Set PIN'),
                         ),
                 ),
@@ -117,7 +117,8 @@ class SettingsScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(32),
                 child: Center(
                   child: Text(
-                    'No providers configured yet.\nTap + on the dashboard to add one.',
+                    'No providers configured yet.\n'
+                    'Tap + on the dashboard to add one.',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
@@ -169,10 +170,12 @@ class SettingsScreen extends ConsumerWidget {
           Card(
             child: Column(
               children: [
-                const ListTile(
-                  leading: Icon(Icons.info_outline_rounded),
-                  title: Text('AI Balance Tracker'),
-                  subtitle: Text('Version 1.0.0'),
+                ListTile(
+                  leading: const Icon(Icons.info_outline_rounded),
+                  title: const Text('AI Balance Tracker'),
+                  subtitle: const Text('Version 1.4.0'),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => context.push('/about'),
                 ),
               ],
             ),
@@ -209,15 +212,6 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
-  }
-
-  void _setupPin(BuildContext context, WidgetRef ref) {
-    PinSetupDialog.show(
-      context,
-      onPinSet: () {
-        ref.read(pinProvider.notifier).refresh();
-      },
     );
   }
 

@@ -8,6 +8,8 @@ import 'screens/provider_detail_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/add_provider_screen.dart';
 import 'screens/pin_unlock_screen.dart';
+import 'screens/pin_setup_screen.dart';
+import 'screens/about_screen.dart';
 import 'widgets/splash_screen.dart';
 
 final _routerProvider = Provider<GoRouter>((ref) {
@@ -36,6 +38,17 @@ final _routerProvider = Provider<GoRouter>((ref) {
         name: 'add-provider',
         builder: (context, state) => const AddProviderScreen(),
       ),
+      GoRoute(
+        path: '/pin-setup',
+        name: 'pin-setup',
+        builder: (context, state) =>
+            const PinSetupScreen(isOnboarding: false),
+      ),
+      GoRoute(
+        path: '/about',
+        name: 'about',
+        builder: (context, state) => const AboutScreen(),
+      ),
     ],
   );
 });
@@ -50,6 +63,7 @@ class AIBalanceApp extends ConsumerStatefulWidget {
 class _AIBalanceAppState extends ConsumerState<AIBalanceApp> {
   bool _showSplash = true;
   bool _unlocked = false;
+  bool _pinSet = false;
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +84,22 @@ class _AIBalanceAppState extends ConsumerState<AIBalanceApp> {
       );
     }
 
-    // After splash: check PIN
+    // After splash: first-launch PIN setup (no PIN exists yet)
+    if (!hasPin && !_pinSet) {
+      return MaterialApp(
+        title: 'AI Balance Tracker',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        themeMode: themeMode,
+        home: PinSetupScreen(
+          isOnboarding: true,
+          key: ValueKey('onboarding-pin-${_pinSet}'),
+        ),
+      );
+    }
+
+    // After splash: check PIN unlock
     if (hasPin && !_unlocked) {
       return MaterialApp(
         title: 'AI Balance Tracker',

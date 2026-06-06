@@ -5,15 +5,16 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-16.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.3.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+[![Version](https://img.shields.io/badge/version-1.4.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 
 ## Features
 
 - **Unified Dashboard** — View balances from all your AI providers in one place
 - **8 providers with full balance tracking** — OpenAI, Anthropic, DeepSeek, OpenRouter, Together AI, Groq, SiliconFlow, Moonshot
 - **19 providers total** — Remaining 11 use key validation when balance API is unavailable
-- **Optional PIN Lock** — Secure the app with a 4-digit PIN (stored in iOS Keychain)
+- **Optional PIN Lock** — Full-screen PIN setup on first launch + unlock on return (stored in iOS Keychain)
 - **Secure Storage** — API keys and PIN stored in iOS Keychain, never in plain text
+- **About Screen** — App info, tech stack, features list, GitHub links
 - **Dark & Light Mode** — Material 3 with automatic/system theme switching
 - **Provider Adapters** — Clean architecture: add new providers by implementing `AIProvider`
 - **Custom App Icon & Splash Screen** — Themed launch screen with card/sparkle design
@@ -54,6 +55,14 @@
 lib/
 ├── main.dart                    # Entry point
 ├── app.dart                     # MaterialApp + PIN unlock check + routing
+├── screens/
+│   ├── dashboard_screen.dart    # Provider cards, search, pull-to-refresh
+│   ├── provider_detail_screen.dart  # Stats, raw API response
+│   ├── settings_screen.dart     # Theme, PIN lock, provider management
+│   ├── add_provider_screen.dart # Searchable provider list + API key entry
+│   ├── pin_unlock_screen.dart   # Full-screen PIN entry with shake animation
+│   ├── pin_setup_screen.dart    # Full-screen PIN creation + confirmation
+│   └── about_screen.dart        # App info, tech stack, links, license
 ├── models/
 │   ├── balance_info.dart        # Balance data model (supportsBalance flag)
 │   ├── usage_info.dart          # Usage statistics model
@@ -78,16 +87,23 @@ lib/
 │   └── app_state.dart           # Riverpod: providers, balances, theme, PIN
 ├── theme/
 │   └── app_theme.dart           # Material 3 light/dark iOS-inspired themes
-├── screens/
-│   ├── dashboard_screen.dart    # Provider cards, search, pull-to-refresh
-│   ├── provider_detail_screen.dart  # Stats, raw API response
-│   ├── settings_screen.dart     # Theme, PIN lock, provider management
-│   ├── add_provider_screen.dart # Searchable provider list + API key entry
-│   └── pin_unlock_screen.dart   # Full-screen PIN entry with shake animation
 └── widgets/
+    ├── splash_screen.dart       # Branded launch screen with animations
     ├── provider_card.dart       # Balance card with not-supported banner
-    └── pin_setup_dialog.dart    # Create/confirm PIN bottom sheet
+    └── pin_setup_dialog.dart    # Create/confirm PIN (legacy bottom sheet)
 ```
+
+## Screens
+
+| Screen | Route | Description |
+|--------|-------|-------------|
+| Dashboard | `/` | Provider cards, search, pull-to-refresh balances |
+| Provider Detail | `/provider/:id` | Stats, usage chart, raw API response |
+| Add Provider | `/add-provider` | Searchable provider list + API key entry |
+| Settings | `/settings` | Theme, PIN lock, provider list, data management |
+| PIN Setup | `/pin-setup` | Full-screen 4-digit PIN creation with confirmation |
+| PIN Unlock | (gate) | Full-screen unlock with shake on wrong PIN |
+| About | `/about` | App info, tech stack, features, links, license |
 
 ### Adding a New Provider
 
@@ -240,11 +256,12 @@ Add these GitHub Secrets for CI to produce a fully signed IPA:
 
 ## PIN Lock
 
-The app includes an optional 4-digit PIN lock:
+The app includes an optional 4-digit PIN lock with a polished setup flow:
 
-- **Set PIN:** Settings → Security → Set PIN → enter + confirm
-- **Remove PIN:** Settings → Security → Remove → enter current PIN
-- **Unlock on launch:** Full-screen PIN entry with shake animation on wrong attempts
+- **First launch:** After splash, if no PIN exists → full-screen onboarding PIN setup with skip option
+- **Set PIN later:** Settings → Security → Set PIN → full-screen setup page → enter + confirm
+- **Remove PIN:** Settings → Security → Remove → enter current PIN in dialog
+- **Unlock on return:** Full-screen PIN entry with animated dots and shake on wrong attempts
 - **Storage:** PIN hash stored in iOS Keychain via `flutter_secure_storage`
 
 ## Security
