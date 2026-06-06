@@ -17,49 +17,33 @@ class OpenAIProvider extends AIProvider {
   @override
   Future<BalanceInfo> getBalance() async {
     try {
-      // OpenAI billing/subscription endpoint
-      final subResp = await http.get(
-        Uri.parse('$baseUrl/v1/dashboard/billing/subscription'),
+      // OpenAI credit grants endpoint
+      final resp = await http.get(
+        Uri.parse('$baseUrl/v1/dashboard/billing/credit_grants'),
         headers: headers,
       );
 
-      if (subResp.statusCode == 200) {
-        final subData = jsonDecode(subResp.body);
-        final hardLimit = (subData['hard_limit_usd'] as num?)?.toDouble() ?? 0;
-        final softLimit = (subData['soft_limit_usd'] as num?)?.toDouble() ?? 0;
-
-        // Get usage for current month
-        final now = DateTime.now();
-        final startDate = DateTime(now.year, now.month, 1);
-        final usageResp = await http.get(
-          Uri.parse(
-            '$baseUrl/v1/dashboard/billing/usage'
-            '?start_date=${startDate.toIso8601String().split('T')[0]}'
-            '&end_date=${now.toIso8601String().split('T')[0]}',
-          ),
-          headers: headers,
-        );
-
-        double spent = 0;
-        if (usageResp.statusCode == 200) {
-          final usageData = jsonDecode(usageResp.body);
-          spent = (usageData['total_usage'] as num?)?.toDouble() ?? 0;
-        }
-
-        final remaining = hardLimit > 0 ? hardLimit - spent : softLimit - spent;
+      if (resp.statusCode == 200) {
+        final data = jsonDecode(resp.body);
+        final totalAvailable =
+            double.tryParse(data['total_available']?.toString() ?? '0') ?? 0;
+        final totalGranted =
+            double.tryParse(data['total_granted']?.toString() ?? '0') ?? 0;
+        final totalUsed =
+            double.tryParse(data['total_used']?.toString() ?? '0') ?? 0;
 
         return BalanceInfo(
           providerId: providerId,
           providerName: type.displayName,
-          balance: remaining,
+          balance: totalAvailable,
           currency: 'USD',
-          totalSpent: spent,
-          totalCredits: hardLimit > 0 ? hardLimit : softLimit,
+          totalSpent: totalUsed,
+          totalCredits: totalGranted,
           lastUpdated: DateTime.now(),
           status: BalanceStatus.active,
-          rawResponse: subData,
+          rawResponse: data,
         );
-      } else if (subResp.statusCode == 401 || subResp.statusCode == 403) {
+      } else if (resp.statusCode == 401 || resp.statusCode == 403) {
         return BalanceInfo(
           providerId: providerId,
           providerName: type.displayName,
@@ -70,7 +54,7 @@ class OpenAIProvider extends AIProvider {
         );
       }
 
-      throw Exception('HTTP ${subResp.statusCode}');
+      throw Exception('HTTP ${resp.statusCode}');
     } catch (e) {
       return BalanceInfo(
         providerId: providerId,
@@ -86,26 +70,21 @@ class OpenAIProvider extends AIProvider {
   @override
   Future<UsageInfo> getUsage() async {
     try {
-      final now = DateTime.now();
-      final startDate = DateTime(now.year, now.month, 1);
       final resp = await http.get(
-        Uri.parse(
-          '$baseUrl/v1/dashboard/billing/usage'
-          '?start_date=${startDate.toIso8601String().split('T')[0]}'
-          '&end_date=${now.toIso8601String().split('T')[0]}',
-        ),
+        Uri.parse('$baseUrl/v1/dashboard/billing/credit_grants'),
         headers: headers,
       );
-
       if (resp.statusCode == 200) {
         final data = jsonDecode(resp.body);
         return UsageInfo(
-          spentThisMonth: (data['total_usage'] as num?)?.toDouble() ?? 0,
-          totalCredits: 0,
+          spentThisMonth:
+              double.tryParse(data['total_used']?.toString() ?? '0') ?? 0,
+          totalCredits:
+              double.tryParse(data['total_granted']?.toString() ?? '0') ?? 0,
         );
       }
-      throw Exception('HTTP ${resp.statusCode}');
-    } catch (e) {
+      throw Exception();
+    } catch (_) {
       return const UsageInfo(spentThisMonth: 0, totalCredits: 0);
     }
   }

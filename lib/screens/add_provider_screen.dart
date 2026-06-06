@@ -166,6 +166,7 @@ class _AddProviderScreenState extends ConsumerState<AddProviderScreen> {
                     TextField(
                       controller: _keyController,
                       obscureText: !_showKey,
+                      onChanged: (_) => setState(() {}),
                       decoration: InputDecoration(
                         labelText: 'API Key',
                         hintText: 'sk-...',

@@ -22,27 +22,32 @@ class OpenRouterProvider extends AIProvider {
       );
 
       if (resp.statusCode == 200) {
-        final data = jsonDecode(resp.body);
-        final credits = (data['total_credits'] as num?)?.toDouble() ?? 0;
-        final used = (data['total_usage'] as num?)?.toDouble() ?? 0;
+        final raw = jsonDecode(resp.body);
+        // Response is wrapped in { data: { ... } }
+        final data = raw['data'] as Map<String, dynamic>? ?? raw;
+        final totalCredits =
+            double.tryParse(data['total_credits']?.toString() ?? '0') ?? 0;
+        final totalUsage =
+            double.tryParse(data['total_usage']?.toString() ?? '0') ?? 0;
+        final remaining = totalCredits - totalUsage;
 
         return BalanceInfo(
           providerId: providerId,
           providerName: type.displayName,
-          balance: credits - used,
-          currency: 'credits',
-          totalSpent: used,
-          totalCredits: credits,
+          balance: remaining,
+          currency: 'USD',
+          totalSpent: totalUsage,
+          totalCredits: totalCredits,
           lastUpdated: DateTime.now(),
           status: BalanceStatus.active,
-          rawResponse: data,
+          rawResponse: raw,
         );
       } else if (resp.statusCode == 401) {
         return BalanceInfo(
           providerId: providerId,
           providerName: type.displayName,
           balance: 0,
-          currency: 'credits',
+          currency: 'USD',
           lastUpdated: DateTime.now(),
           status: BalanceStatus.invalidKey,
         );
@@ -54,7 +59,7 @@ class OpenRouterProvider extends AIProvider {
         providerId: providerId,
         providerName: type.displayName,
         balance: 0,
-        currency: 'credits',
+        currency: 'USD',
         lastUpdated: DateTime.now(),
         status: handleError(e),
       );
@@ -69,10 +74,13 @@ class OpenRouterProvider extends AIProvider {
         headers: headers,
       );
       if (resp.statusCode == 200) {
-        final data = jsonDecode(resp.body);
+        final raw = jsonDecode(resp.body);
+        final data = raw['data'] as Map<String, dynamic>? ?? raw;
         return UsageInfo(
-          spentThisMonth: (data['total_usage'] as num?)?.toDouble() ?? 0,
-          totalCredits: (data['total_credits'] as num?)?.toDouble() ?? 0,
+          spentThisMonth:
+              double.tryParse(data['total_usage']?.toString() ?? '0') ?? 0,
+          totalCredits:
+              double.tryParse(data['total_credits']?.toString() ?? '0') ?? 0,
         );
       }
       throw Exception();

@@ -181,6 +181,8 @@ enum ProviderType {
       case ProviderType.openrouter:
       case ProviderType.groq:
       case ProviderType.together:
+      case ProviderType.siliconflow:
+      case ProviderType.moonshot:
         return true;
       default:
         return false;

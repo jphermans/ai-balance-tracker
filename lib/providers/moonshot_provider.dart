@@ -4,8 +4,8 @@ import 'ai_provider.dart';
 import '../models/balance_info.dart';
 import '../models/usage_info.dart';
 
-class DeepSeekProvider extends AIProvider {
-  DeepSeekProvider(super.config);
+class MoonshotProvider extends AIProvider {
+  MoonshotProvider(super.config);
 
   @override
   Map<String, String> get headers => {
@@ -17,48 +17,43 @@ class DeepSeekProvider extends AIProvider {
   Future<BalanceInfo> getBalance() async {
     try {
       final resp = await http.get(
-        Uri.parse('$baseUrl/user/balance'),
+        Uri.parse('$baseUrl/v1/users/me/balance'),
         headers: headers,
       );
 
       if (resp.statusCode == 200) {
-        final data = jsonDecode(resp.body);
-        final balanceInfos = data['balance_infos'] as List? ?? [];
-
-        if (balanceInfos.isEmpty) {
-          return BalanceInfo(
-            providerId: providerId,
-            providerName: type.displayName,
-            balance: 0,
-            currency: 'USD',
-            lastUpdated: DateTime.now(),
-            status: BalanceStatus.active,
-            rawResponse: data,
-          );
-        }
-
-        // Use first balance entry (primary currency)
-        final info = balanceInfos.first as Map<String, dynamic>;
-        final totalBalance =
-            double.tryParse(info['total_balance']?.toString() ?? '0') ?? 0;
-        final grantedBalance =
-            double.tryParse(info['granted_balance']?.toString() ?? '0') ?? 0;
-        final toppedUpBalance =
-            double.tryParse(info['topped_up_balance']?.toString() ?? '0') ?? 0;
-        final currency = info['currency'] as String? ?? 'CNY';
+        final raw = jsonDecode(resp.body);
+        // Response: { data: { available_balance, voucher_balance, cash_balance } }
+        final data = raw['data'] as Map<String, dynamic>? ?? raw;
+        final balance = double.tryParse(
+              (data['available_balance'] ??
+                      data['balance'] ??
+                      data['credit'] ??
+                      data['total_balance'] ??
+                      '0')
+                  .toString(),
+            ) ??
+            0;
+        final voucherBalance = double.tryParse(
+              (data['voucher_balance'] ?? '0').toString(),
+            ) ??
+            0;
+        final cashBalance = double.tryParse(
+              (data['cash_balance'] ?? '0').toString(),
+            ) ??
+            0;
+        final currency = (data['currency'] as String?) ?? 'CNY';
 
         return BalanceInfo(
           providerId: providerId,
           providerName: type.displayName,
-          balance: totalBalance,
+          balance: balance,
           currency: currency,
-          totalSpent: grantedBalance + toppedUpBalance - totalBalance > 0
-              ? grantedBalance + toppedUpBalance - totalBalance
-              : null,
-          totalCredits: grantedBalance + toppedUpBalance,
+          totalSpent: null,
+          totalCredits: balance,
           lastUpdated: DateTime.now(),
           status: BalanceStatus.active,
-          rawResponse: data,
+          rawResponse: raw,
         );
       } else if (resp.statusCode == 401) {
         return BalanceInfo(

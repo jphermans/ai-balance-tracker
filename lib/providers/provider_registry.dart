@@ -6,6 +6,8 @@ import 'deepseek_provider.dart';
 import 'openrouter_provider.dart';
 import 'groq_provider.dart';
 import 'together_provider.dart';
+import 'siliconflow_provider.dart';
+import 'moonshot_provider.dart';
 import 'stub_provider.dart';
 
 /// Registry that maps ProviderType to the correct AIProvider implementation.
@@ -27,6 +29,10 @@ class ProviderRegistry {
         return GroqProvider(config);
       case ProviderType.together:
         return TogetherProvider(config);
+      case ProviderType.siliconflow:
+        return SiliconFlowProvider(config);
+      case ProviderType.moonshot:
+        return MoonshotProvider(config);
       // All other providers use the stub
       default:
         return StubProvider(config);
@@ -40,5 +46,7 @@ class ProviderRegistry {
     ProviderType.deepseek,
     ProviderType.openrouter,
     ProviderType.together,
+    ProviderType.siliconflow,
+    ProviderType.moonshot,
   };
 }

@@ -4,8 +4,8 @@ import 'ai_provider.dart';
 import '../models/balance_info.dart';
 import '../models/usage_info.dart';
 
-class DeepSeekProvider extends AIProvider {
-  DeepSeekProvider(super.config);
+class SiliconFlowProvider extends AIProvider {
+  SiliconFlowProvider(super.config);
 
   @override
   Map<String, String> get headers => {
@@ -17,47 +17,25 @@ class DeepSeekProvider extends AIProvider {
   Future<BalanceInfo> getBalance() async {
     try {
       final resp = await http.get(
-        Uri.parse('$baseUrl/user/balance'),
+        Uri.parse('$baseUrl/v1/user/info'),
         headers: headers,
       );
 
       if (resp.statusCode == 200) {
         final data = jsonDecode(resp.body);
-        final balanceInfos = data['balance_infos'] as List? ?? [];
-
-        if (balanceInfos.isEmpty) {
-          return BalanceInfo(
-            providerId: providerId,
-            providerName: type.displayName,
-            balance: 0,
-            currency: 'USD',
-            lastUpdated: DateTime.now(),
-            status: BalanceStatus.active,
-            rawResponse: data,
-          );
-        }
-
-        // Use first balance entry (primary currency)
-        final info = balanceInfos.first as Map<String, dynamic>;
-        final totalBalance =
-            double.tryParse(info['total_balance']?.toString() ?? '0') ?? 0;
-        final grantedBalance =
-            double.tryParse(info['granted_balance']?.toString() ?? '0') ?? 0;
-        final toppedUpBalance =
-            double.tryParse(info['topped_up_balance']?.toString() ?? '0') ?? 0;
-        final currency = info['currency'] as String? ?? 'CNY';
+        final balance = double.tryParse(
+              (data['totalBalance'] ?? data['balance'] ?? '0').toString(),
+            ) ??
+            0;
+        final status = data['status'] as String? ?? 'active';
 
         return BalanceInfo(
           providerId: providerId,
           providerName: type.displayName,
-          balance: totalBalance,
-          currency: currency,
-          totalSpent: grantedBalance + toppedUpBalance - totalBalance > 0
-              ? grantedBalance + toppedUpBalance - totalBalance
-              : null,
-          totalCredits: grantedBalance + toppedUpBalance,
+          balance: balance,
+          currency: 'CNY',
           lastUpdated: DateTime.now(),
-          status: BalanceStatus.active,
+          status: status == 'active' ? BalanceStatus.active : BalanceStatus.unavailable,
           rawResponse: data,
         );
       } else if (resp.statusCode == 401) {
