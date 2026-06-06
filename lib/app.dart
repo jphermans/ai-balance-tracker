@@ -7,6 +7,7 @@ import 'screens/dashboard_screen.dart';
 import 'screens/provider_detail_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/add_provider_screen.dart';
+import 'screens/pin_unlock_screen.dart';
 
 final _routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -38,13 +39,35 @@ final _routerProvider = Provider<GoRouter>((ref) {
   );
 });
 
-class AIBalanceApp extends ConsumerWidget {
+class AIBalanceApp extends ConsumerStatefulWidget {
   const AIBalanceApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AIBalanceApp> createState() => _AIBalanceAppState();
+}
+
+class _AIBalanceAppState extends ConsumerState<AIBalanceApp> {
+  bool _unlocked = false;
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(_routerProvider);
     final themeMode = ref.watch(themeModeProvider);
+    final hasPin = ref.watch(pinProvider);
+
+    // If PIN is set and not yet unlocked, show unlock screen
+    if (hasPin && !_unlocked) {
+      return MaterialApp(
+        title: 'AI Balance Tracker',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        themeMode: themeMode,
+        home: PinUnlockScreen(
+          onUnlocked: () => setState(() => _unlocked = true),
+        ),
+      );
+    }
 
     return MaterialApp.router(
       title: 'AI Balance Tracker',

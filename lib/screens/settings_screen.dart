@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/app_state.dart';
 import '../models/provider_config.dart';
+import '../widgets/pin_setup_dialog.dart';
+import '../services/pin_service.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -10,6 +12,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final providers = ref.watch(providersProvider);
     final themeMode = ref.watch(themeModeProvider);
+    final hasPin = ref.watch(pinProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -54,6 +57,44 @@ class SettingsScreen extends ConsumerWidget {
                       ref.read(themeModeProvider.notifier).setTheme(set.first);
                     },
                   ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Security
+          Text(
+            'SECURITY',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: Icon(
+                    hasPin ? Icons.lock_rounded : Icons.lock_open_rounded,
+                    color: hasPin ? theme.colorScheme.primary : null,
+                  ),
+                  title: const Text('PIN Lock'),
+                  subtitle: Text(hasPin ? 'Enabled' : 'Not set'),
+                  trailing: hasPin
+                      ? TextButton(
+                          onPressed: () => _confirmRemovePin(context, ref),
+                          child: Text(
+                            'Remove',
+                            style: TextStyle(color: theme.colorScheme.error),
+                          ),
+                        )
+                      : FilledButton.tonal(
+                          onPressed: () => _setupPin(context, ref),
+                          child: const Text('Set PIN'),
+                        ),
                 ),
               ],
             ),
@@ -167,6 +208,88 @@ class SettingsScreen extends ConsumerWidget {
             child: const Text('Clear All'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _setupPin(BuildContext context, WidgetRef ref) {
+    PinSetupDialog.show(
+      context,
+      onPinSet: () {
+        ref.read(pinProvider.notifier).refresh();
+      },
+    );
+  }
+
+  void _confirmRemovePin(BuildContext context, WidgetRef ref) {
+    _showRemovePinDialog(context, ref);
+  }
+
+  void _showRemovePinDialog(BuildContext context, WidgetRef ref) {
+    final pinController = TextEditingController();
+    String? error;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          return AlertDialog(
+            title: const Text('Remove PIN'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Enter your current PIN to remove it.'),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: pinController,
+                  obscureText: true,
+                  maxLength: 4,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    letterSpacing: 8,
+                  ),
+                  decoration: InputDecoration(
+                    counterText: '',
+                    errorText: error,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onChanged: (_) => setDialogState(() => error = null),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () async {
+                  final pin = pinController.text;
+                  if (pin.length != 4) {
+                    setDialogState(() => error = 'PIN must be 4 digits');
+                    return;
+                  }
+                  final valid = await PinService.verifyPin(pin);
+                  if (valid) {
+                    await ref.read(pinProvider.notifier).removePin();
+                    if (ctx.mounted) Navigator.pop(ctx);
+                  } else {
+                    setDialogState(() => error = 'Incorrect PIN');
+                  }
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                ),
+                child: const Text('Remove PIN'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

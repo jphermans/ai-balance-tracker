@@ -4,6 +4,7 @@ import '../models/balance_info.dart';
 import '../models/provider_config.dart';
 import '../services/secure_storage_service.dart';
 import '../services/balance_service.dart';
+import '../services/pin_service.dart';
 
 /// Manages the list of configured providers.
 class ProvidersNotifier extends StateNotifier<List<ProviderConfig>> {
@@ -100,6 +101,35 @@ final balancesProvider =
 final themeModeProvider =
     StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
   return ThemeModeNotifier();
+});
+
+/// Manages whether a PIN lock is active.
+class PinNotifier extends StateNotifier<bool> {
+  PinNotifier() : super(false) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    state = await PinService.hasPin();
+  }
+
+  Future<void> refresh() async {
+    state = await PinService.hasPin();
+  }
+
+  Future<void> setPin(String pin) async {
+    await PinService.setPin(pin);
+    state = true;
+  }
+
+  Future<void> removePin() async {
+    await PinService.removePin();
+    state = false;
+  }
+}
+
+final pinProvider = StateNotifierProvider<PinNotifier, bool>((ref) {
+  return PinNotifier();
 });
 
 final isLoadingProvider = Provider<bool>((ref) {
