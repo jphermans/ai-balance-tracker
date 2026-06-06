@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/app_state.dart';
@@ -192,7 +193,7 @@ class _ProviderDetailScreenState extends ConsumerState<ProviderDetailScreen> {
   }
 
   String _formatJson(Map<String, dynamic> json) {
-    return const JsonEncoder.withIndent('  ').convert(json);
+    return JsonEncoder.withIndent('  ').convert(json);
   }
 }
 
