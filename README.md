@@ -5,24 +5,21 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-16.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
-<p align="center">
-  <img src="assets/screenshots/dashboard.png" width="250" alt="Dashboard">
-  <img src="assets/screenshots/detail.png" width="250" alt="Provider Detail">
-  <img src="assets/screenshots/settings.png" width="250" alt="Settings">
-</p>
+[![Version](https://img.shields.io/badge/version-1.3.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 
 ## Features
 
-- **Unified Dashboard** — View balances from all your AI providers at a glance
-- **19 Providers Supported** — OpenAI, Anthropic, DeepSeek, OpenRouter, Google AI, xAI, Groq, Together AI, and more
-- **Secure Storage** — API keys stored in iOS Keychain / Android EncryptedSharedPreferences, never in plain text
-- **Dark & Light Mode** — Material 3 with automatic theme adaptation
+- **Unified Dashboard** — View balances from all your AI providers in one place
+- **8 providers with full balance tracking** — OpenAI, Anthropic, DeepSeek, OpenRouter, Together AI, Groq, SiliconFlow, Moonshot
+- **19 providers total** — Remaining 11 use key validation when balance API is unavailable
+- **Optional PIN Lock** — Secure the app with a 4-digit PIN (stored in iOS Keychain)
+- **Secure Storage** — API keys and PIN stored in iOS Keychain, never in plain text
+- **Dark & Light Mode** — Material 3 with automatic/system theme switching
 - **Provider Adapters** — Clean architecture: add new providers by implementing `AIProvider`
-- **Balance History** — Track spending and credits over time (coming soon)
-- **Offline Support** — Cached balances available when you're offline
-- **CSV Export** — Export your balance data for external analysis
-- **Developer Mode** — View raw API responses for debugging
+- **Custom App Icon & Splash Screen** — Themed launch screen with card/sparkle design
+- **Unsigned IPA in CI** — Every push produces a downloadable IPA for sideloading
+- **Developer Mode** — View raw API responses per provider
+- **Balance Not Supported Banner** — Cards clearly indicate when a provider only supports key validation
 
 ## Supported Providers
 
@@ -33,6 +30,8 @@
 | DeepSeek | ✅ | ✅ |
 | OpenRouter | ✅ | ✅ |
 | Together AI | ✅ | ✅ |
+| SiliconFlow | ✅ | ✅ |
+| Moonshot AI | ✅ | ✅ |
 | Groq | ⚠️ | ✅ |
 | Google AI Studio | ❌ | ✅ |
 | xAI | ❌ | ✅ |
@@ -41,58 +40,62 @@
 | Fireworks AI | ❌ | ✅ |
 | Perplexity | ❌ | ✅ |
 | Novita AI | ❌ | ✅ |
-| SiliconFlow | ❌ | ✅ |
-| Moonshot AI | ❌ | ✅ |
 | Cerebras | ❌ | ✅ |
 | Replicate | ❌ | ✅ |
 | Hugging Face | ❌ | ✅ |
 | SambaNova | ❌ | ✅ |
 | AI21 Labs | ❌ | ✅ |
 
-✅ Full balance tracking &nbsp; ⚠️ Key validation only &nbsp; ❌ Key validation only
+✅ Full balance tracking &nbsp;&nbsp; ⚠️ Key validation only (shown on card) &nbsp;&nbsp; ❌ Key validation only
 
 ## Architecture
 
 ```
 lib/
-├── main.dart              # Entry point
-├── app.dart               # MaterialApp + routing
+├── main.dart                    # Entry point
+├── app.dart                     # MaterialApp + PIN unlock check + routing
 ├── models/
-│   ├── balance_info.dart  # Balance data model
-│   ├── usage_info.dart    # Usage statistics model
-│   └── provider_config.dart # Provider configuration + types
+│   ├── balance_info.dart        # Balance data model (supportsBalance flag)
+│   ├── usage_info.dart          # Usage statistics model
+│   └── provider_config.dart     # Provider configuration + 19 provider types
 ├── providers/
-│   ├── ai_provider.dart   # Abstract base class
-│   ├── openai_provider.dart
-│   ├── anthropic_provider.dart
-│   ├── deepseek_provider.dart
-│   ├── openrouter_provider.dart
-│   ├── groq_provider.dart
-│   ├── together_provider.dart
-│   ├── stub_provider.dart # For providers without balance APIs
-│   └── provider_registry.dart
+│   ├── ai_provider.dart         # Abstract base class
+│   ├── openai_provider.dart     # /v1/dashboard/billing/credit_grants
+│   ├── anthropic_provider.dart  # /v1/organizations/{id}/usage
+│   ├── deepseek_provider.dart   # /user/balance
+│   ├── openrouter_provider.dart # /api/v1/credits
+│   ├── groq_provider.dart       # Key validation via /models
+│   ├── together_provider.dart   # /v1/billing
+│   ├── siliconflow_provider.dart # /v1/user/info
+│   ├── moonshot_provider.dart   # /v1/users/me/balance
+│   ├── stub_provider.dart       # Key validation for 11 other providers
+│   └── provider_registry.dart   # Provider → adapter mapping
 ├── services/
-│   ├── secure_storage_service.dart  # Keychain-backed storage
-│   └── balance_service.dart         # Balance fetching orchestration
+│   ├── secure_storage_service.dart  # Keychain-backed credential storage
+│   ├── balance_service.dart         # Parallel balance fetching
+│   └── pin_service.dart             # PIN hash/verify/remove (Keychain)
 ├── state/
-│   └── app_state.dart     # Riverpod state management
+│   └── app_state.dart           # Riverpod: providers, balances, theme, PIN
 ├── theme/
-│   └── app_theme.dart     # Material 3 light/dark themes
+│   └── app_theme.dart           # Material 3 light/dark iOS-inspired themes
 ├── screens/
-│   ├── dashboard_screen.dart
-│   ├── provider_detail_screen.dart
-│   ├── settings_screen.dart
-│   └── add_provider_screen.dart
+│   ├── dashboard_screen.dart    # Provider cards, search, pull-to-refresh
+│   ├── provider_detail_screen.dart  # Stats, raw API response
+│   ├── settings_screen.dart     # Theme, PIN lock, provider management
+│   ├── add_provider_screen.dart # Searchable provider list + API key entry
+│   └── pin_unlock_screen.dart   # Full-screen PIN entry with shake animation
 └── widgets/
-    └── provider_card.dart
+    ├── provider_card.dart       # Balance card with not-supported banner
+    └── pin_setup_dialog.dart    # Create/confirm PIN bottom sheet
 ```
 
 ### Adding a New Provider
 
-1. Create a new class in `lib/providers/` that extends `AIProvider`
+1. Create a class in `lib/providers/` extending `AIProvider`
 2. Implement `getBalance()` and `getUsage()`
-3. Add the provider type to `ProviderType` enum in `provider_config.dart`
+3. Add the type to `ProviderType` enum in `provider_config.dart`
 4. Register it in `ProviderRegistry.create()`
+5. Set `hasBalanceEndpoint` to `true` if the provider has a balance API
 
 ```dart
 class MyProvider extends AIProvider {
@@ -126,90 +129,141 @@ class MyProvider extends AIProvider {
 ### Development
 
 ```bash
-# Clone the repo
 git clone https://github.com/jphermans/ai-balance-tracker.git
 cd ai-balance-tracker
-
-# Install dependencies
 flutter pub get
-
-# Run on iOS simulator
-flutter run
-
-# Run on connected iPhone
-flutter run -d <device_id>
+flutter run          # iOS simulator
+flutter run -d <id>  # connected iPhone
 ```
 
-### Build IPA for Sideloading
+## Building & Sideloading the IPA
 
-**Option 1: Download unsigned IPA from CI (simplest)**
+The CI builds an unsigned IPA on every push. You download it, sign it with your own certificate, and install it on your device.
 
-1. Go to [Actions → Build iOS IPA](https://github.com/jphermans/ai-balance-tracker/actions/workflows/build-ipa.yml)
-2. Click the latest successful run
-3. Download `ai-balance-tracker-unsigned-ipa` artifact
-4. Unzip and re-sign with your own certificate:
+### Step 1: Download the IPA
+
+Go to [Actions → Build iOS IPA](https://github.com/jphermans/ai-balance-tracker/actions/workflows/build-ipa.yml) → click the latest run → scroll to **Artifacts** → download `ai-balance-tracker-unsigned-ipa`.
+
+### Step 2: Get a Signing Certificate
+
+**If you have an Apple Developer account ($99/year):**
+```bash
+# Your cert is already in Keychain. List it:
+security find-identity -v -p codesigning
+# Look for "iPhone Developer: Your Name (TEAMID)"
+```
+
+**If you don't have a paid account (free sideloading, 7-day expiry):**
+1. Open Xcode → Preferences → Accounts → add your Apple ID
+2. Create a new dummy iOS project (any template)
+3. Set the bundle ID to `com.jphermans.ai-balance-tracker`
+4. Build to your device once — Xcode creates a free provisioning profile
+5. Your signing identity is now: `Apple Development: your@email.com (TEAMID)`
+
+Find your identity:
+```bash
+security find-identity -v -p codesigning
+```
+
+### Step 3: Create Entitlements
+
+Create a file `entitlements.plist` (or use the one in `ios/entitlements.plist` from the repo):
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>application-identifier</key>
+    <string>YOUR_TEAM_ID.com.jphermans.ai-balance-tracker</string>
+    <key>com.apple.developer.team-identifier</key>
+    <string>YOUR_TEAM_ID</string>
+    <key>get-task-allow</key>
+    <true/>
+</dict>
+</plist>
+```
+
+Replace `YOUR_TEAM_ID` with your actual team ID (find it at [developer.apple.com/account](https://developer.apple.com/account)).
+
+### Step 4: Sign the IPA
 
 ```bash
 # Unzip the IPA
 unzip ai-balance-tracker-unsigned.ipa -d extracted
 
-# Sign with your own cert (macOS)
+# Sign the app with your certificate
 codesign -fs "iPhone Developer: Your Name (TEAMID)" \
   --entitlements entitlements.plist \
   extracted/Payload/Runner.app
 
-# Re-package
-cd extracted && zip -r ../ai-balance-tracker-signed.ipa Payload/
+# Verify the signature
+codesign -dvvv extracted/Payload/Runner.app
 
-# Install via Xcode, Apple Configurator, or sideloading tool
+# Re-package into a signed IPA
+cd extracted
+zip -r ../ai-balance-tracker-signed.ipa Payload/
+cd ..
 ```
 
-**Option 2: Build locally**
+### Step 5: Install on Your iPhone
 
+**Option A — Xcode (easiest):**
+1. Connect iPhone via USB
+2. Xcode → Window → Devices and Simulators
+3. Drag the signed `.ipa` onto your device
+
+**Option B — Apple Configurator (Mac App Store, free):**
+1. Connect iPhone via USB
+2. Drag the signed `.ipa` onto your device in Apple Configurator
+
+**Option C — ios-deploy (command line):**
 ```bash
-# Build unsigned
-flutter build ios --no-codesign
-
-# Package into IPA
-mkdir Payload
-cp -R build/ios/Release-iphoneos/Runner.app Payload/
-zip -r ai-balance-tracker.ipa Payload/
-
-# Sign and install with ios-deploy
-ios-deploy --bundle Payload/Runner.app
+brew install ios-deploy
+ios-deploy --bundle extracted/Payload/Runner.app
 ```
 
-**Option 3: Signed build (requires Apple Developer account)**
+**Option D — AltStore / SideStore:**
+Use a sideloading tool that handles re-signing automatically.
 
-Set up the GitHub Secrets listed in `.github/workflows/build-ipa.yml`, then the CI produces a fully signed ad-hoc IPA ready to sideload via Xcode or Apple Configurator.
+### Automated Signed Build (optional)
+
+Add these GitHub Secrets for CI to produce a fully signed IPA:
+
+| Secret | How to get it |
+|--------|---------------|
+| `APPLE_DEVELOPER_CERTIFICATE_BASE64` | `base64 -i ~/Desktop/certificate.p12` |
+| `APPLE_DEVELOPER_CERTIFICATE_PASSWORD` | P12 export password |
+| `APPLE_PROVISION_PROFILE_BASE64` | `base64 -i ~/Downloads/app.mobileprovision` |
+| `APPLE_TEAM_ID` | From [developer.apple.com/account](https://developer.apple.com/account) |
+
+## PIN Lock
+
+The app includes an optional 4-digit PIN lock:
+
+- **Set PIN:** Settings → Security → Set PIN → enter + confirm
+- **Remove PIN:** Settings → Security → Remove → enter current PIN
+- **Unlock on launch:** Full-screen PIN entry with shake animation on wrong attempts
+- **Storage:** PIN hash stored in iOS Keychain via `flutter_secure_storage`
 
 ## Security
 
-- API keys are stored in the **iOS Keychain** via `flutter_secure_storage`
+- API keys and PIN stored in **iOS Keychain** via `flutter_secure_storage`
+- PIN is hashed before storage (not plaintext)
 - No credentials in SharedPreferences, logs, or crash reports
-- Sensitive values are masked in the UI
+- Sensitive values masked in UI
 - HTTPS-only API communication
-- Keys are never transmitted to third-party servers
 
 ## CI/CD
 
-This repo includes a GitHub Actions workflow (`.github/workflows/build-ipa.yml`) that:
+The `.github/workflows/build-ipa.yml` workflow:
 
-1. Builds the Flutter iOS app on a macOS runner
-2. Produces an ad-hoc IPA file for sideloading
-3. Uploads the IPA as a workflow artifact
-
-### Setup
-
-Add these secrets to your GitHub repo:
-
-| Secret | Description |
-|--------|-------------|
-| `APPLE_DEVELOPER_CERTIFICATE_BASE64` | P12 certificate (base64-encoded) |
-| `APPLE_DEVELOPER_CERTIFICATE_PASSWORD` | P12 certificate password |
-| `APPLE_PROVISION_PROFILE_BASE64` | Ad-hoc provisioning profile (base64-encoded) |
-| `APPLE_TEAM_ID` | Your Apple Developer team ID |
-| `APPLE_EXPORT_PASSWORD` | Password for IPA export |
+| Job | Trigger | Output |
+|-----|---------|--------|
+| **Unsigned IPA** | Every push to `main` | `ai-balance-tracker-unsigned.ipa` artifact |
+| **Signed IPA** | Push to `main` (requires Apple secrets) | Signed ad-hoc IPA artifact |
+| **GitHub Release** | Tag push (`v*`) | Both IPAs attached to release |
 
 ## License
 
