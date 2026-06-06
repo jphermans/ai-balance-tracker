@@ -142,12 +142,46 @@ flutter run -d <device_id>
 
 ### Build IPA for Sideloading
 
-```bash
-# Build ad-hoc IPA (requires Apple Developer account)
-flutter build ipa --export-method ad-hoc
+**Option 1: Download unsigned IPA from CI (simplest)**
 
-# Or use GitHub Actions (see .github/workflows/build-ipa.yml)
+1. Go to [Actions → Build iOS IPA](https://github.com/jphermans/ai-balance-tracker/actions/workflows/build-ipa.yml)
+2. Click the latest successful run
+3. Download `ai-balance-tracker-unsigned-ipa` artifact
+4. Unzip and re-sign with your own certificate:
+
+```bash
+# Unzip the IPA
+unzip ai-balance-tracker-unsigned.ipa -d extracted
+
+# Sign with your own cert (macOS)
+codesign -fs "iPhone Developer: Your Name (TEAMID)" \
+  --entitlements entitlements.plist \
+  extracted/Payload/Runner.app
+
+# Re-package
+cd extracted && zip -r ../ai-balance-tracker-signed.ipa Payload/
+
+# Install via Xcode, Apple Configurator, or sideloading tool
 ```
+
+**Option 2: Build locally**
+
+```bash
+# Build unsigned
+flutter build ios --no-codesign
+
+# Package into IPA
+mkdir Payload
+cp -R build/ios/Release-iphoneos/Runner.app Payload/
+zip -r ai-balance-tracker.ipa Payload/
+
+# Sign and install with ios-deploy
+ios-deploy --bundle Payload/Runner.app
+```
+
+**Option 3: Signed build (requires Apple Developer account)**
+
+Set up the GitHub Secrets listed in `.github/workflows/build-ipa.yml`, then the CI produces a fully signed ad-hoc IPA ready to sideload via Xcode or Apple Configurator.
 
 ## Security
 
