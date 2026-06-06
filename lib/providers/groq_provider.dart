@@ -1,9 +1,7 @@
-import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'ai_provider.dart';
 import '../models/balance_info.dart';
 import '../models/usage_info.dart';
-
 class GroqProvider extends AIProvider {
   GroqProvider(super.config);
 

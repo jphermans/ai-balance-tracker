@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import 'ai_provider.dart';
 import '../models/balance_info.dart';
 import '../models/usage_info.dart';
-import '../models/provider_config.dart';
 
 class OpenAIProvider extends AIProvider {
   OpenAIProvider(super.config);

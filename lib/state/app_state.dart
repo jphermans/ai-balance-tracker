@@ -39,6 +39,11 @@ class ProvidersNotifier extends StateNotifier<List<ProviderConfig>> {
       state = providers;
     }
   }
+
+  Future<void> clearAll() async {
+    await SecureStorageService.deleteAll();
+    state = [];
+  }
 }
 
 /// Manages balance data for all providers.

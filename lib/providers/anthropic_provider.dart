@@ -66,7 +66,7 @@ class AnthropicProvider extends AIProvider {
           providerName: type.displayName,
           balance: totalCredits - totalUsed,
           currency: 'credits',
-          totalSpent: totalUsed,
+          totalSpent: spentThisMonth,
           totalCredits: totalCredits,
           lastUpdated: DateTime.now(),
           status: BalanceStatus.active,

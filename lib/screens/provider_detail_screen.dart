@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/app_state.dart';
-import '../models/balance_info.dart';
 import '../models/usage_info.dart';
 import '../services/balance_service.dart';
 

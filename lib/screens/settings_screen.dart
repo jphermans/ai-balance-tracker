@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/app_state.dart';
 import '../models/provider_config.dart';
-import '../theme/app_theme.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -159,7 +158,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           FilledButton(
             onPressed: () {
-              ref.read(providersProvider.notifier).state = [];
+              ref.read(providersProvider.notifier).clearAll();
               Navigator.pop(ctx);
             },
             style: FilledButton.styleFrom(
@@ -212,7 +211,7 @@ class _ProviderTile extends ConsumerWidget {
                   .toggleProvider(config.id, enabled);
             },
           ),
-          ButtonBar(
+          OverflowBar(
             children: [
               TextButton.icon(
                 onPressed: () {
