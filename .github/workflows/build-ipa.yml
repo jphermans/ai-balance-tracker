@@ -9,16 +9,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-ipa:
-    name: Build Ad-Hoc IPA
+  # ── Unsigned IPA (always builds, no secrets needed) ──
+  build-unsigned:
+    name: Unsigned IPA
     runs-on: macos-latest
-    strategy:
-      matrix:
-        variant:
-          - name: unsigned
-            signed: false
-          - name: signed
-            signed: true
 
     steps:
       - name: Checkout
@@ -38,17 +32,68 @@ jobs:
         continue-on-error: true
         run: flutter analyze --no-fatal-warnings --no-fatal-infos
 
-      # --- SIGNED variant: requires Apple secrets ---
-      - name: Decode and install Apple certificate (signed only)
-        if: matrix.variant.signed
+      - name: Build unsigned .app
+        run: flutter build ios --no-codesign --release
+
+      - name: Package unsigned IPA
+        run: |
+          APP_PATH="build/ios/Release-iphoneos/Runner.app"
+          if [ ! -d "$APP_PATH" ]; then
+            echo "::error::Runner.app not found at $APP_PATH"
+            ls -la build/ios/ || true
+            exit 1
+          fi
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/
+          zip -r -y ai-balance-tracker-unsigned.ipa Payload
+          rm -rf Payload
+          echo "::notice::IPA created: $(du -h ai-balance-tracker-unsigned.ipa | cut -f1)"
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-balance-tracker-unsigned-ipa
+          path: ai-balance-tracker-unsigned.ipa
+          retention-days: 30
+
+  # ── Signed IPA (only runs if Apple secrets are set) ──
+  build-signed:
+    name: Signed IPA (ad-hoc)
+    runs-on: macos-latest
+    if: github.event_name != 'pull_request'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check secrets
+        id: check-secrets
+        run: |
+          if [ -z "${{ secrets.APPLE_DEVELOPER_CERTIFICATE_BASE64 }}" ]; then
+            echo "has_secrets=false" >> $GITHUB_OUTPUT
+            echo "::warning::Apple signing secrets not configured — skipping signed build"
+          else
+            echo "has_secrets=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Flutter
+        if: steps.check-secrets.outputs.has_secrets == 'true'
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.5'
+          channel: 'stable'
+          cache: true
+
+      - name: Flutter pub get
+        if: steps.check-secrets.outputs.has_secrets == 'true'
+        run: flutter pub get
+
+      - name: Decode and install Apple certificate
+        if: steps.check-secrets.outputs.has_secrets == 'true'
         env:
           APPLE_DEVELOPER_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_BASE64 }}
           APPLE_DEVELOPER_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
         run: |
-          if [ -z "$APPLE_DEVELOPER_CERTIFICATE_BASE64" ]; then
-            echo "::warning::APPLE_DEVELOPER_CERTIFICATE_BASE64 not set — skipping signed build"
-            exit 0
-          fi
           echo "$APPLE_DEVELOPER_CERTIFICATE_BASE64" | base64 --decode > certificate.p12
           security create-keychain -p "" build.keychain
           security default-keychain -s build.keychain
@@ -57,51 +102,20 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
           rm certificate.p12
 
-      - name: Decode and install provisioning profile (signed only)
-        if: matrix.variant.signed
+      - name: Decode and install provisioning profile
+        if: steps.check-secrets.outputs.has_secrets == 'true'
         env:
           APPLE_PROVISION_PROFILE_BASE64: ${{ secrets.APPLE_PROVISION_PROFILE_BASE64 }}
         run: |
-          if [ -z "$APPLE_PROVISION_PROFILE_BASE64" ]; then
-            echo "::warning::APPLE_PROVISION_PROFILE_BASE64 not set — skipping"
-            exit 0
-          fi
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           echo "$APPLE_PROVISION_PROFILE_BASE64" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
 
-      # --- UNSIGNED variant: build without codesigning ---
-      - name: Build unsigned .app
-        if: "!matrix.variant.signed"
+      - name: Build signed IPA
+        if: steps.check-secrets.outputs.has_secrets == 'true'
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          flutter build ios --no-codesign --release 2>&1
-
-      - name: Package unsigned IPA
-        if: "!matrix.variant.signed"
-        run: |
-          APP_PATH="build/ios/Release-iphoneos/Runner.app"
-          if [ ! -d "$APP_PATH" ]; then
-            echo "::error::Runner.app not found at $APP_PATH"
-            exit 1
-          fi
-          mkdir -p Payload
-          cp -R "$APP_PATH" Payload/
-          zip -r -y ai-balance-tracker-unsigned.ipa Payload
-          rm -rf Payload
-          echo "IPA size: $(du -h ai-balance-tracker-unsigned.ipa | cut -f1)"
-
-      - name: Upload unsigned IPA artifact
-        if: "!matrix.variant.signed"
-        uses: actions/upload-artifact@v4
-        with:
-          name: ai-balance-tracker-unsigned-ipa
-          path: ai-balance-tracker-unsigned.ipa
-          retention-days: 30
-
-      # --- SIGNED variant: full signing build ---
-      - name: Create ExportOptions.plist (signed only)
-        if: matrix.variant.signed
-        run: |
-          cat > ios/ExportOptions.plist << 'PLIST'
+          cat > ios/ExportOptions.plist << PLIST
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
@@ -109,7 +123,7 @@ jobs:
               <key>method</key>
               <string>ad-hoc</string>
               <key>teamID</key>
-              <string>${{ secrets.APPLE_TEAM_ID }}</string>
+              <string>${APPLE_TEAM_ID}</string>
               <key>compileBitcode</key>
               <false/>
               <key>uploadSymbols</key>
@@ -117,31 +131,31 @@ jobs:
           </dict>
           </plist>
           PLIST
+          flutter build ipa --export-options-plist=ios/ExportOptions.plist --release --no-tree-shake-icons
 
-      - name: Build signed IPA
-        if: matrix.variant.signed
-        run: |
-          flutter build ipa \
-            --export-method ad-hoc \
-            --release \
-            --export-options-plist=ios/ExportOptions.plist \
-            --no-tree-shake-icons
-
-      - name: Upload signed IPA artifact
-        if: matrix.variant.signed
+      - name: Upload signed IPA
+        if: steps.check-secrets.outputs.has_secrets == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ai-balance-tracker-signed-ipa
           path: build/ios/ipa/*.ipa
           retention-days: 30
 
-      # --- Release (tags only) ---
+  # ── GitHub Release (tags only) ──
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [build-unsigned]
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Download unsigned IPA
+        uses: actions/download-artifact@v4
+        with:
+          name: ai-balance-tracker-unsigned-ipa
+
       - name: Create Release
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            ai-balance-tracker-unsigned.ipa
-            build/ios/ipa/*.ipa
+          files: ai-balance-tracker-unsigned.ipa
           generate_release_notes: true
-          fail_on_unmatched_files: false
