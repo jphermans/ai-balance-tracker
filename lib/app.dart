@@ -8,6 +8,7 @@ import 'screens/provider_detail_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/add_provider_screen.dart';
 import 'screens/pin_unlock_screen.dart';
+import 'widgets/splash_screen.dart';
 
 final _routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -47,15 +48,29 @@ class AIBalanceApp extends ConsumerStatefulWidget {
 }
 
 class _AIBalanceAppState extends ConsumerState<AIBalanceApp> {
+  bool _showSplash = true;
   bool _unlocked = false;
 
   @override
   Widget build(BuildContext context) {
-    final router = ref.watch(_routerProvider);
     final themeMode = ref.watch(themeModeProvider);
     final hasPin = ref.watch(pinProvider);
 
-    // If PIN is set and not yet unlocked, show unlock screen
+    // Show branded splash screen first
+    if (_showSplash) {
+      return MaterialApp(
+        title: 'AI Balance Tracker',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        themeMode: themeMode,
+        home: SplashScreen(
+          onDone: () => setState(() => _showSplash = false),
+        ),
+      );
+    }
+
+    // After splash: check PIN
     if (hasPin && !_unlocked) {
       return MaterialApp(
         title: 'AI Balance Tracker',
@@ -69,6 +84,7 @@ class _AIBalanceAppState extends ConsumerState<AIBalanceApp> {
       );
     }
 
+    final router = ref.watch(_routerProvider);
     return MaterialApp.router(
       title: 'AI Balance Tracker',
       debugShowCheckedModeBanner: false,
