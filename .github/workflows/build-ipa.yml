@@ -40,9 +40,7 @@ jobs:
           # Flutter sets up workspace + pod install + compiles Dart
           flutter build ios --no-codesign --release 2>&1 | tail -5 || true
 
-          # Always rebuild with xcodebuild for a complete .app
-          flutter assemble --release -o build/ios/Release-iphoneos
-
+          # Rebuild .app with xcodebuild (signing disabled via CLI args)
           cd ios
           xcodebuild \
             -workspace Runner.xcworkspace \
