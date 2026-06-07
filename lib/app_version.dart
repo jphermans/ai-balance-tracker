@@ -1,2 +1,2 @@
 /// App version — keep in sync with pubspec.yaml when bumping.
-const String appVersion = '1.5.1';
+const String appVersion = '1.5.2';

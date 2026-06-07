@@ -14,7 +14,20 @@ class ProviderCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Card(
-      child: InkWell(
+      clipBehavior: Clip.antiAlias,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Balance threshold indicator strip
+            if (info.supportsBalance && info.status == BalanceStatus.active)
+              Container(
+                width: 4,
+                color: _balanceColor(info.balance),
+              ),
+            // Card content
+            Expanded(
+              child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
@@ -45,7 +58,10 @@ class ProviderCard extends StatelessWidget {
                     _formatBalance(info.balance),
                     style: theme.textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
+                      color: info.supportsBalance &&
+                              info.status == BalanceStatus.active
+                          ? _balanceColor(info.balance)
+                          : colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(width: 4),
@@ -114,8 +130,21 @@ class ProviderCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
+              ), // Expanded
+            ], // Row children
+          ), // IntrinsicHeight
+        ), // Card
+      );
+  }
+
+  /// Returns a color based on balance thresholds:
+  /// - Red: < 5 (critical)
+  /// - Orange: 5 to < 10 (warning)
+  /// - Green: >= 10 (healthy)
+  Color _balanceColor(double balance) {
+    if (balance < 5) return Colors.red;
+    if (balance < 10) return Colors.orange;
+    return Colors.green;
   }
 
   String _formatBalance(double balance) {
