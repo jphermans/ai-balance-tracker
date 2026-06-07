@@ -37,8 +37,13 @@ jobs:
 
       - name: Package unsigned IPA
         run: |
+          APP="build/ios/iphoneos/Runner.app"
+          echo "App bundle: $APP"
+          ls -la "$APP/Info.plist" || { echo "ERROR: No Info.plist in app bundle"; exit 1; }
+          rm -rf Payload
           mkdir -p Payload
-          cp -R build/ios/Release-iphoneos/Runner.app Payload/
+          cp -R "$APP" Payload/
+          ls -la Payload/Runner.app/Info.plist || { echo "ERROR: App bundle not copied correctly"; exit 1; }
           zip -r -y ai-balance-tracker-unsigned.ipa Payload
           rm -rf Payload
 
