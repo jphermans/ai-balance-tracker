@@ -65,6 +65,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         title: const Text('AI Balance'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.info_outline_rounded),
+            onPressed: () => context.push('/about'),
+            tooltip: 'About',
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings_rounded),
+            onPressed: () => context.push('/settings'),
+            tooltip: 'Settings',
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh_rounded),
             onPressed: isLoading ? null : _refresh,
             tooltip: 'Refresh all',

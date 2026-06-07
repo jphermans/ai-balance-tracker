@@ -121,7 +121,7 @@ class _SplashScreenState extends State<SplashScreen>
               child: FadeTransition(
                 opacity: _fadeIn,
                 child: Text(
-                  'v1.3.0',
+                  'v1.5.0',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.25),
