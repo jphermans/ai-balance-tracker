@@ -37,28 +37,33 @@ jobs:
 
       - name: Build unsigned .app
         run: |
-          # Compile Dart to native code (without xcodebuild)
-          flutter assemble --release -o build/ios/Release-iphoneos
+          # Let Flutter set up workspace + run pod install (signing part may fail)
+          flutter build ios --no-codesign --release 2>&1 | tail -5 || true
 
-          # Build with xcodebuild directly — CLI args override ALL project settings
-          cd ios
-          xcodebuild \
-            -workspace Runner.xcworkspace \
-            -scheme Runner \
-            -sdk iphoneos \
-            -configuration Release \
-            -derivedDataPath ../build/ios \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            DEVELOPMENT_TEAM="" \
-            PROVISIONING_PROFILE_SPECIFIER="" \
-            build 2>&1 | tail -20
-          cd ..
+          # If Flutter's xcodebuild failed on signing, rebuild with CLI overrides
+          if [ ! -d "build/ios/Release-iphoneos/Runner.app" ]; then
+            # Regenerate native code (Dart already compiled by flutter build)
+            flutter assemble --release -o build/ios/Release-iphoneos
 
-          # Verify output
+            cd ios
+            xcodebuild \
+              -workspace Runner.xcworkspace \
+              -scheme Runner \
+              -sdk iphoneos \
+              -configuration Release \
+              -derivedDataPath ../build/ios \
+              CODE_SIGNING_ALLOWED=NO \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGN_IDENTITY="" \
+              DEVELOPMENT_TEAM="" \
+              PROVISIONING_PROFILE_SPECIFIER="" \
+              build 2>&1 | tail -20
+            cd ..
+          fi
+
+          # Verify
           ls -la build/ios/Release-iphoneos/Runner.app || exit 1
-          echo "::notice::Build succeeded"
+          echo "::notice::IPA ready for Sideloadly signing"
 
       - name: Package unsigned IPA
         run: |
