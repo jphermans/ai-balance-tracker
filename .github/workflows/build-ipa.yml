@@ -51,7 +51,7 @@ jobs:
               -scheme Runner \
               -sdk iphoneos \
               -configuration Release \
-              -derivedDataPath ../build/ios \
+              CONFIGURATION_BUILD_DIR="../build/ios/Release-iphoneos" \
               CODE_SIGNING_ALLOWED=NO \
               CODE_SIGNING_REQUIRED=NO \
               CODE_SIGN_IDENTITY="" \
