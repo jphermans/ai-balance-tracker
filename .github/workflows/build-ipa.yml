@@ -45,6 +45,8 @@ jobs:
       - name: Build unsigned .app
         run: |
           sed -i '' 's/DEVELOPMENT_TEAM = .*;/DEVELOPMENT_TEAM = "";/g' ios/Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' ios/Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/"CODE_SIGN_IDENTITY\[sdk=iphoneos\*\]" = "iPhone Developer";/"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";/g' ios/Runner.xcodeproj/project.pbxproj
           flutter build ios --no-codesign --release
 
       - name: Package unsigned IPA
