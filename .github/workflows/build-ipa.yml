@@ -32,6 +32,7 @@ jobs:
         id: version
         run: |
           VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ')
+          sed -i '' "s/const String appVersion = '.*';/const String appVersion = '$VERSION';/" lib/app_version.dart
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Flutter pub get
@@ -39,10 +40,10 @@ jobs:
 
       - name: Flutter analyze
         continue-on-error: true
-        run: flutter analyze --no-fatal-warnings --no-fatal-infos
+        run: flutter analyze
 
       - name: Build unsigned .app
-        run: flutter build ios --no-codesign --release --dart-define=APP_VERSION=${{ steps.version.outputs.version }}
+        run: flutter build ios --no-codesign --release
 
       - name: Package unsigned IPA
         run: |
