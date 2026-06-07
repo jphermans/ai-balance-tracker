@@ -37,27 +37,31 @@ jobs:
 
       - name: Build unsigned .app
         run: |
-          # Set up CocoaPods workspace (flutter build ios does this but fails on signing)
-          cd ios && pod install && cd ..
+          # Let Flutter set up workspace + pod install + compile Dart
+          # (xcodebuild part will fail on signing — that's expected)
+          flutter build ios --no-codesign --release 2>&1 | tail -5 || true
 
-          # Compile Dart to native
-          flutter assemble --release -o build/ios/Release-iphoneos
+          # If .app is incomplete, rebuild with xcodebuild CLI overrides
+          if [ ! -f "build/ios/Release-iphoneos/Runner.app/Info.plist" ]; then
+            echo "Flutter .app incomplete — rebuilding with xcodebuild"
 
-          # Build .app with xcodebuild — CLI args override signing
-          cd ios
-          xcodebuild \
-            -workspace Runner.xcworkspace \
-            -scheme Runner \
-            -sdk iphoneos \
-            -configuration Release \
-            CONFIGURATION_BUILD_DIR="../build/ios/Release-iphoneos" \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            DEVELOPMENT_TEAM="" \
-            PROVISIONING_PROFILE_SPECIFIER="" \
-            build 2>&1 | tail -20
-          cd ..
+            flutter assemble --release -o build/ios/Release-iphoneos
+
+            cd ios
+            xcodebuild \
+              -workspace Runner.xcworkspace \
+              -scheme Runner \
+              -sdk iphoneos \
+              -configuration Release \
+              -derivedDataPath ../build/ios \
+              CODE_SIGNING_ALLOWED=NO \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGN_IDENTITY="" \
+              DEVELOPMENT_TEAM="" \
+              PROVISIONING_PROFILE_SPECIFIER="" \
+              build 2>&1 | tail -20
+            cd ..
+          fi
 
           APP_PATH="build/ios/Release-iphoneos/Runner.app"
           ls -la "$APP_PATH/Info.plist" || { echo "FATAL: No Info.plist"; exit 1; }
