@@ -5,6 +5,7 @@ import '../state/app_state.dart';
 import '../models/provider_config.dart';
 import '../services/pin_service.dart';
 import 'add_provider_screen.dart';
+import '../services/export_service.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -146,6 +147,13 @@ class SettingsScreen extends ConsumerWidget {
             child: Column(
               children: [
                 ListTile(
+                  leading: const Icon(Icons.file_download_outlined),
+                  title: const Text('Export as CSV'),
+                  subtitle: const Text('Share all balances as spreadsheet'),
+                  onTap: () => _exportCsv(context, ref),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.delete_outline_rounded),
                   title: const Text('Clear All Data'),
                   subtitle: const Text('Remove all providers and credentials'),
@@ -214,6 +222,32 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  void _exportCsv(BuildContext context, WidgetRef ref) async {
+    final balances = ref.read(balancesProvider);
+    if (balances.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No data to export'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    try {
+      await ExportService.exportBalances(balances);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Export failed: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   void _confirmRemovePin(BuildContext context, WidgetRef ref) {
