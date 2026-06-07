@@ -33,27 +33,7 @@ jobs:
         run: flutter analyze --no-fatal-warnings --no-fatal-infos
 
       - name: Build unsigned .app
-        run: |
-          # Flutter compiles Dart + sets up workspace
-          flutter build ios --no-codesign --release 2>&1 | tail -3 || true
-
-          # xcodebuild with CODE_SIGNING_ALLOWED=NO overrides everything
-          cd ios
-          xcodebuild \
-            -workspace Runner.xcworkspace \
-            -scheme Runner \
-            -sdk iphoneos \
-            -configuration Release \
-            -derivedDataPath ../build/ios \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            DEVELOPMENT_TEAM="" \
-            PROVISIONING_PROFILE_SPECIFIER="" \
-            build 2>&1 | tail -10
-          cd ..
-
-          ls -la build/ios/Release-iphoneos/Runner.app/Info.plist || exit 1
+        run: flutter build ios --no-codesign --release
 
       - name: Package unsigned IPA
         run: |
