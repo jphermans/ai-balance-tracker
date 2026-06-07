@@ -37,16 +37,14 @@ jobs:
 
       - name: Build unsigned .app
         run: |
-          # Let Flutter set up workspace + compile Dart (signing part may fail)
+          # Let Flutter set up workspace + compile Dart
           flutter build ios --no-codesign --release 2>&1 | tail -5 || true
 
-          # Check if flutter produced the .app
+          # Check for a VALID .app (directory alone isn't enough — need Info.plist)
           APP_PATH="build/ios/Release-iphoneos/Runner.app"
 
-          if [ ! -d "$APP_PATH" ]; then
-            echo "Flutter signing failed — rebuilding with xcodebuild CLI overrides"
-
-            # Regenerate native code
+          if [ ! -f "$APP_PATH/Info.plist" ]; then
+            echo "Flutter build incomplete — rebuilding with xcodebuild CLI overrides"
             flutter assemble --release -o build/ios/Release-iphoneos
 
             cd ios
@@ -55,6 +53,7 @@ jobs:
               -scheme Runner \
               -sdk iphoneos \
               -configuration Release \
+              CONFIGURATION_BUILD_DIR="../build/ios/Release-iphoneos" \
               CODE_SIGNING_ALLOWED=NO \
               CODE_SIGNING_REQUIRED=NO \
               CODE_SIGN_IDENTITY="" \
@@ -62,20 +61,10 @@ jobs:
               PROVISIONING_PROFILE_SPECIFIER="" \
               build 2>&1 | tail -20
             cd ..
-
-            # Find the .app wherever xcodebuild put it
-            APP_PATH=$(find build -name "Runner.app" -type d -path "*/Release-iphoneos/*" | head -1)
-            echo "Found .app at: $APP_PATH"
-          fi
-
-          # Verify .app has Info.plist
-          if [ ! -f "$APP_PATH/Info.plist" ]; then
-            echo "ERROR: No Info.plist in $APP_PATH"
-            ls -la "$APP_PATH/" 2>/dev/null || echo "(dir not found)"
-            exit 1
           fi
 
           echo "APP_PATH=$APP_PATH" >> $GITHUB_ENV
+          ls -la "$APP_PATH/Info.plist" || { echo "FATAL: No Info.plist produced"; exit 1; }
           echo "::notice::.app ready at $APP_PATH"
 
       - name: Package unsigned IPA
