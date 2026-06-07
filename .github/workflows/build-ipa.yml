@@ -15,7 +15,7 @@ jobs:
   # ── Unsigned IPA (always builds, no secrets needed) ──
   build-unsigned:
     name: Unsigned IPA
-    runs-on: macos-latest
+    runs-on: macos-14
 
     steps:
       - name: Checkout
@@ -57,7 +57,7 @@ jobs:
   # ── Signed IPA (only runs if Apple secrets are set) ──
   build-signed:
     name: Signed IPA (ad-hoc)
-    runs-on: macos-latest
+    runs-on: macos-14
     if: github.event_name != 'pull_request'
 
     steps:
