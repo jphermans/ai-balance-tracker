@@ -37,6 +37,7 @@ jobs:
 
       - name: Package unsigned IPA
         run: |
+          mkdir -p Payload
           cp -R build/ios/Release-iphoneos/Runner.app Payload/
           zip -r -y ai-balance-tracker-unsigned.ipa Payload
           rm -rf Payload
