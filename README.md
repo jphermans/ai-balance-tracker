@@ -5,14 +5,18 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-16.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.5.1-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+[![Version](https://img.shields.io/badge/version-1.6.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 
 ## Features
 
 - **Unified Dashboard** — View balances from all your AI providers in one place
 - **8 providers with full balance tracking** — OpenAI, Anthropic, DeepSeek, OpenRouter, Together AI, Groq, SiliconFlow, Moonshot
 - **19 providers total** — Remaining 11 use key validation when balance API is unavailable
-- **Optional PIN Lock** — Full-screen PIN setup on first launch + unlock on return (stored in iOS Keychain)
+- **Spending History Chart** — 7/30/90-day balance snapshots with interactive line chart and touch tooltips
+- **CSV Export** — Export provider data and spending history via share sheet
+- **Color-Coded Provider Cards** — Green/orange/red balance threshold indicators (≥10/≥5/<5)
+- **App Banner** — Full-width JPHsystems banner image on about screen
+- **Optional PIN Lock** — Full-screen PIN setup on first launch + polished unlock screen (stored in iOS Keychain)
 - **Secure Storage** — API keys and PIN stored in iOS Keychain, never in plain text
 - **About Screen** — App info, tech stack, features list, GitHub links
 - **Dark & Light Mode** — Material 3 with automatic/system theme switching
@@ -65,6 +69,7 @@ lib/
 │   └── about_screen.dart        # App info, tech stack, links, license
 ├── models/
 │   ├── balance_info.dart        # Balance data model (supportsBalance flag)
+│   ├── balance_snapshot.dart     # Timestamped balance for spending history
 │   ├── usage_info.dart          # Usage statistics model
 │   └── provider_config.dart     # Provider configuration + 19 provider types
 ├── providers/
@@ -82,6 +87,7 @@ lib/
 ├── services/
 │   ├── secure_storage_service.dart  # Keychain-backed credential storage
 │   ├── balance_service.dart         # Parallel balance fetching
+│   ├── history_service.dart         # Balance snapshots + spending chart data
 │   └── pin_service.dart             # PIN hash/verify/remove (Keychain)
 ├── state/
 │   └── app_state.dart           # Riverpod: providers, balances, theme, PIN
@@ -90,6 +96,7 @@ lib/
 └── widgets/
     ├── splash_screen.dart       # Branded launch screen with animations
     ├── provider_card.dart       # Balance card with not-supported banner
+    ├── pin_pad.dart             # Shared numeric PIN keypad (iOS style)
     └── pin_setup_dialog.dart    # Create/confirm PIN (legacy bottom sheet)
 ```
 
