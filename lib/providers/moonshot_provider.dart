@@ -10,38 +10,24 @@ class MoonshotProvider extends AIProvider {
   @override
   Map<String, String> get headers => {
         'Authorization': 'Bearer ${config.apiKey}',
-        'Content-Type': 'application/json',
       };
 
   @override
   Future<BalanceInfo> getBalance() async {
     try {
+      final url = '$baseUrl/v1/users/me/balance';
       final resp = await http.get(
-        Uri.parse('$baseUrl/v1/users/me/balance'),
+        Uri.parse(url),
         headers: headers,
       );
 
       if (resp.statusCode == 200) {
         final raw = jsonDecode(resp.body);
-        // Response: { data: { available_balance, voucher_balance, cash_balance } }
+        // Response: { code: 0, data: { available_balance, voucher_balance, cash_balance }, status: true }
         final data = raw['data'] as Map<String, dynamic>? ?? raw;
-        final balance = double.tryParse(
-              (data['available_balance'] ??
-                      data['balance'] ??
-                      data['credit'] ??
-                      data['total_balance'] ??
-                      '0')
-                  .toString(),
-            ) ??
-            0;
-        final voucherBalance = double.tryParse(
-              (data['voucher_balance'] ?? '0').toString(),
-            ) ??
-            0;
-        final cashBalance = double.tryParse(
-              (data['cash_balance'] ?? '0').toString(),
-            ) ??
-            0;
+        final balance = (data['available_balance'] as num?)?.toDouble() ?? 0;
+        final voucherBalance = (data['voucher_balance'] as num?)?.toDouble() ?? 0;
+        final cashBalance = (data['cash_balance'] as num?)?.toDouble() ?? 0;
         final currency = (data['currency'] as String?) ?? 'CNY';
 
         return BalanceInfo(
@@ -55,7 +41,15 @@ class MoonshotProvider extends AIProvider {
           status: BalanceStatus.active,
           rawResponse: raw,
         );
-      } else if (resp.statusCode == 401) {
+      }
+
+      // Capture error body for debugging (visible in Developer Mode)
+      String errorBody = '';
+      try {
+        errorBody = resp.body;
+      } catch (_) {}
+
+      if (resp.statusCode == 401 || resp.statusCode == 403) {
         return BalanceInfo(
           providerId: providerId,
           providerName: type.displayName,
@@ -63,10 +57,11 @@ class MoonshotProvider extends AIProvider {
           currency: 'CNY',
           lastUpdated: DateTime.now(),
           status: BalanceStatus.invalidKey,
+          rawResponse: {'error': 'HTTP ${resp.statusCode}', 'body': errorBody},
         );
       }
 
-      throw Exception('HTTP ${resp.statusCode}');
+      throw Exception('HTTP ${resp.statusCode}: $errorBody');
     } catch (e) {
       return BalanceInfo(
         providerId: providerId,
@@ -75,6 +70,7 @@ class MoonshotProvider extends AIProvider {
         currency: 'CNY',
         lastUpdated: DateTime.now(),
         status: handleError(e),
+        rawResponse: {'error': e.toString()},
       );
     }
   }
