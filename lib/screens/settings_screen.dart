@@ -6,6 +6,7 @@ import '../models/provider_config.dart';
 import '../services/pin_service.dart';
 import 'add_provider_screen.dart';
 import '../services/export_service.dart';
+import '../app_version.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -182,12 +183,7 @@ class SettingsScreen extends ConsumerWidget {
                 ListTile(
                   leading: const Icon(Icons.info_outline_rounded),
                   title: const Text('AI Balance Tracker'),
-                  subtitle: Consumer(
-                    builder: (context, ref, _) {
-                      final version = ref.watch(appVersionProvider);
-                      return Text('Version $version');
-                    },
-                  ),
+                  subtitle: Text('Version $appVersion'),
                   trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: () => context.push('/about'),
                 ),

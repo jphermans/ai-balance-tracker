@@ -5,7 +5,6 @@ import '../models/provider_config.dart';
 import '../services/secure_storage_service.dart';
 import '../services/balance_service.dart';
 import '../services/pin_service.dart';
-import '../app_version.dart';
 
 /// Manages the list of configured providers.
 class ProvidersNotifier extends StateNotifier<List<ProviderConfig>> {
@@ -136,7 +135,3 @@ final pinProvider = StateNotifierProvider<PinNotifier, bool>((ref) {
 final isLoadingProvider = Provider<bool>((ref) {
   return ref.watch(balancesProvider.notifier).isLoading;
 });
-
-/// App version from pubspec.yaml, injected at build time via --dart-define.
-/// Update version in pubspec.yaml only — CI passes it automatically.
-final appVersionProvider = Provider<String>((ref) => appVersion);

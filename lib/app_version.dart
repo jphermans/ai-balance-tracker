@@ -1,3 +1,2 @@
-/// App version — updated by CI before build via sed.
-/// Default value for local development.
+/// App version — keep in sync with pubspec.yaml when bumping.
 const String appVersion = '1.5.1';

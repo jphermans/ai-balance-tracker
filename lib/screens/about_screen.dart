@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../state/app_state.dart';
+import '../app_version.dart';
 
 /// About screen with app info, tech stack, credits, and links.
-class AboutScreen extends ConsumerWidget {
+class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
   static const _repoUrl = 'https://github.com/jphermans/ai-balance-tracker';
@@ -63,16 +62,11 @@ class AboutScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Consumer(
-                  builder: (context, ref, _) {
-                    final version = ref.watch(appVersionProvider);
-                    return Text(
-                      'Version $version',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    );
-                  },
+                Text(
+                  'Version $appVersion',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),

@@ -1,11 +1,10 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../state/app_state.dart';
+import '../app_version.dart';
 
 /// Flutter splash screen matching the native launch screen design.
 /// Shown after native splash to extend the branded experience.
-class SplashScreen extends ConsumerStatefulWidget {
+class SplashScreen extends StatefulWidget {
   final VoidCallback onDone;
 
   const SplashScreen({super.key, required this.onDone});
@@ -14,7 +13,7 @@ class SplashScreen extends ConsumerStatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends ConsumerState<SplashScreen>
+class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _fadeIn;
@@ -122,19 +121,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               right: 0,
               child: FadeTransition(
                 opacity: _fadeIn,
-                child: Consumer(
-                  builder: (context, ref, _) {
-                    final version = ref.watch(appVersionProvider);
-                    return Text(
-                      version,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.25),
-                        fontSize: 12,
-                        letterSpacing: 2,
-                      ),
-                    );
-                  },
+                child: Text(
+                  appVersion,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.25),
+                    fontSize: 12,
+                    letterSpacing: 2,
+                  ),
                 ),
               ),
             ),
