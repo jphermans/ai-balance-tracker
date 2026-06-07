@@ -32,11 +32,9 @@ class ExportService {
     );
     await file.writeAsString(csv);
 
-    await SharePlus.instance.share(
-      ShareParams(
-        files: [XFile(file.path)],
-        text: 'AI Balance Tracker export',
-      ),
+    await Share.shareXFiles(
+      [XFile(file.path)],
+      text: 'AI Balance Tracker export',
     );
   }
 }
