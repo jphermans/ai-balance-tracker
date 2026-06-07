@@ -94,6 +94,7 @@ class _AIBalanceAppState extends ConsumerState<AIBalanceApp> {
         themeMode: themeMode,
         home: PinSetupScreen(
           isOnboarding: true,
+          onSkip: () => setState(() => _pinSet = true),
           key: ValueKey('onboarding-pin-${_pinSet}'),
         ),
       );

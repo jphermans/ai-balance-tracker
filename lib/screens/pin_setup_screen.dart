@@ -11,7 +11,10 @@ class PinSetupScreen extends ConsumerStatefulWidget {
   /// If true, shows as first-launch onboarding with a skip option.
   final bool isOnboarding;
 
-  const PinSetupScreen({super.key, this.isOnboarding = false});
+  /// Called when the user taps "Skip for now" during onboarding.
+  final VoidCallback? onSkip;
+
+  const PinSetupScreen({super.key, this.isOnboarding = false, this.onSkip});
 
   @override
   ConsumerState<PinSetupScreen> createState() => _PinSetupScreenState();
@@ -135,7 +138,11 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen>
   }
 
   void _skip() {
-    context.go('/');
+    if (widget.onSkip != null) {
+      widget.onSkip!();
+    } else {
+      context.go('/');
+    }
   }
 
   @override
