@@ -37,24 +37,28 @@ jobs:
 
       - name: Build unsigned .app
         run: |
-          # Flutter sets up workspace + pod install + compiles Dart
+          # Flutter compiles Dart + sets up workspace (signing part may fail)
           flutter build ios --no-codesign --release 2>&1 | tail -5 || true
 
-          # Rebuild .app with xcodebuild (signing disabled via CLI args)
-          cd ios
-          xcodebuild \
-            -workspace Runner.xcworkspace \
-            -scheme Runner \
-            -sdk iphoneos \
-            -configuration Release \
-            -derivedDataPath ../build/ios \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            DEVELOPMENT_TEAM="" \
-            PROVISIONING_PROFILE_SPECIFIER="" \
-            build 2>&1 | tail -20
-          cd ..
+          # If .app incomplete, rebuild with xcodebuild CLI overrides
+          if [ ! -f "build/ios/Release-iphoneos/Runner.app/Info.plist" ]; then
+            echo "Rebuilding with xcodebuild..."
+
+            cd ios
+            xcodebuild \
+              -workspace Runner.xcworkspace \
+              -scheme Runner \
+              -sdk iphoneos \
+              -configuration Release \
+              -derivedDataPath ../build/ios \
+              CODE_SIGNING_ALLOWED=NO \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGN_IDENTITY="" \
+              DEVELOPMENT_TEAM="" \
+              PROVISIONING_PROFILE_SPECIFIER="" \
+              build 2>&1 | tail -20
+            cd ..
+          fi
 
           APP_PATH="build/ios/Release-iphoneos/Runner.app"
           ls -la "$APP_PATH/Info.plist" || { echo "FATAL: No Info.plist"; exit 1; }
