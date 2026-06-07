@@ -1,9 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 import '../state/app_state.dart';
 import '../models/usage_info.dart';
+import '../models/balance_snapshot.dart';
 import '../services/balance_service.dart';
+import '../services/history_service.dart';
 
 class ProviderDetailScreen extends ConsumerStatefulWidget {
   final String providerId;
@@ -18,11 +22,15 @@ class _ProviderDetailScreenState extends ConsumerState<ProviderDetailScreen> {
   UsageInfo? _usage;
   bool _loadingUsage = false;
   bool _showRaw = false;
+  List<BalanceSnapshot> _snapshots = [];
+  bool _loadingSnapshots = false;
+  int _chartDays = 7;
 
   @override
   void initState() {
     super.initState();
     _loadUsage();
+    _loadSnapshots();
   }
 
   Future<void> _loadUsage() async {
@@ -39,6 +47,24 @@ class _ProviderDetailScreenState extends ConsumerState<ProviderDetailScreen> {
     }
   }
 
+  Future<void> _loadSnapshots() async {
+    setState(() => _loadingSnapshots = true);
+    try {
+      final snapshots = await HistoryService.getSnapshots(
+        providerId: widget.providerId,
+        days: 90,
+      );
+      setState(() => _snapshots = snapshots);
+    } finally {
+      setState(() => _loadingSnapshots = false);
+    }
+  }
+
+  List<BalanceSnapshot> get _filteredSnapshots {
+    final cutoff = DateTime.now().subtract(Duration(days: _chartDays));
+    return _snapshots.where((s) => s.date.isAfter(cutoff)).toList();
+  }
+
   Future<void> _refresh() async {
     final configs = ref.read(providersProvider);
     final config = configs.where((c) => c.id == widget.providerId).firstOrNull;
@@ -46,6 +72,7 @@ class _ProviderDetailScreenState extends ConsumerState<ProviderDetailScreen> {
 
     await ref.read(balancesProvider.notifier).refreshOne(config);
     await _loadUsage();
+    await _loadSnapshots();
   }
 
   @override
@@ -149,6 +176,39 @@ class _ProviderDetailScreenState extends ConsumerState<ProviderDetailScreen> {
               ],
             ),
             const SizedBox(height: 24),
+            // Balance history chart
+            if (info.supportsBalance) ...[
+              _BalanceChart(
+                snapshots: _filteredSnapshots,
+                currency: info.currency,
+                loading: _loadingSnapshots,
+              ),
+              const SizedBox(height: 8),
+              // Day toggle
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _DayChip(
+                    label: '7D',
+                    selected: _chartDays == 7,
+                    onTap: () => setState(() => _chartDays = 7),
+                  ),
+                  const SizedBox(width: 8),
+                  _DayChip(
+                    label: '30D',
+                    selected: _chartDays == 30,
+                    onTap: () => setState(() => _chartDays = 30),
+                  ),
+                  const SizedBox(width: 8),
+                  _DayChip(
+                    label: '90D',
+                    selected: _chartDays == 90,
+                    onTap: () => setState(() => _chartDays = 90),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+            ],
             // Raw response toggle
             if (info.rawResponse != null)
               Card(
@@ -245,6 +305,237 @@ class _StatCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _BalanceChart extends StatelessWidget {
+  final List<BalanceSnapshot> snapshots;
+  final String currency;
+  final bool loading;
+
+  const _BalanceChart({
+    required this.snapshots,
+    required this.currency,
+    this.loading = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.show_chart_rounded,
+                    size: 20, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  'Balance History',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (loading)
+              const SizedBox(
+                height: 200,
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (snapshots.length < 2)
+              SizedBox(
+                height: 200,
+                child: Center(
+                  child: Text(
+                    'Not enough data yet.\nRefresh balances over time to build history.',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              )
+            else
+              SizedBox(
+                height: 200,
+                child: _buildChart(colorScheme),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChart(ColorScheme colorScheme) {
+    final spots = <FlSpot>[];
+    for (int i = 0; i < snapshots.length; i++) {
+      spots.add(FlSpot(i.toDouble(), snapshots[i].balance));
+    }
+
+    final minY = snapshots.map((s) => s.balance).reduce(
+          (a, b) => a < b ? a : b,
+        );
+    final maxY = snapshots.map((s) => s.balance).reduce(
+          (a, b) => a > b ? a : b,
+        );
+    final yPadding = (maxY - minY) * 0.15;
+
+    return LineChart(
+      LineChartData(
+        minY: (minY - yPadding).clamp(0, double.infinity),
+        maxY: maxY + yPadding,
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: _niceInterval(minY, maxY),
+          getDrawingHorizontalLine: (value) => FlLine(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+            strokeWidth: 1,
+          ),
+        ),
+        titlesData: FlTitlesData(
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 28,
+              interval: _bottomInterval,
+              getTitlesWidget: (value, meta) {
+                final idx = value.toInt();
+                if (idx < 0 || idx >= snapshots.length) {
+                  return const SizedBox.shrink();
+                }
+                final date = snapshots[idx].date;
+                return Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    DateFormat('M/d').format(date),
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 52,
+              getTitlesWidget: (value, meta) {
+                return Text(
+                  '\$${value.toStringAsFixed(0)}',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        borderData: FlBorderData(show: false),
+        lineTouchData: LineTouchData(
+          touchTooltipData: LineTouchTooltipData(
+            getTooltipItems: (touchedSpots) {
+              return touchedSpots.map((spot) {
+                final idx = spot.x.toInt();
+                final date = idx >= 0 && idx < snapshots.length
+                    ? DateFormat('MMM d').format(snapshots[idx].date)
+                    : '';
+                return LineTooltipItem(
+                  '$date\n\$${spot.y.toStringAsFixed(2)}',
+                  TextStyle(
+                    color: colorScheme.onPrimary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
+                );
+              }).toList();
+            },
+          ),
+        ),
+        lineBarsData: [
+          LineChartBarData(
+            spots: spots,
+            isCurved: true,
+            curveSmoothness: 0.3,
+            color: colorScheme.primary,
+            barWidth: 2.5,
+            isStrokeCapRound: true,
+            dotData: FlDotData(
+              show: snapshots.length <= 14,
+              getDotPainter: (spot, percent, bar, index) =>
+                  FlDotCirclePainter(
+                radius: 3,
+                color: colorScheme.primary,
+                strokeWidth: 1.5,
+                strokeColor: colorScheme.surface,
+              ),
+            ),
+            belowBarData: BarAreaData(
+              show: true,
+              color: colorScheme.primary.withValues(alpha: 0.1),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  double _niceInterval(double min, double max) {
+    final range = max - min;
+    if (range <= 0) return 1;
+    if (range <= 5) return 1;
+    if (range <= 20) return 5;
+    if (range <= 100) return 20;
+    return (range / 4).ceilToDouble();
+  }
+
+  double get _bottomInterval {
+    if (snapshots.length <= 7) return 1;
+    if (snapshots.length <= 14) return 2;
+    if (snapshots.length <= 31) return 7;
+    return 14;
+  }
+}
+
+class _DayChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _DayChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return ChoiceChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: (_) => onTap(),
+      selectedColor: colorScheme.primaryContainer,
+      labelStyle: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: selected ? colorScheme.onPrimaryContainer : null,
+      ),
+      visualDensity: VisualDensity.compact,
     );
   }
 }

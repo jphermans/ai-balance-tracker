@@ -4,6 +4,7 @@ import '../models/balance_info.dart';
 import '../models/provider_config.dart';
 import '../services/secure_storage_service.dart';
 import '../services/balance_service.dart';
+import '../services/history_service.dart';
 import '../services/pin_service.dart';
 
 /// Manages the list of configured providers.
@@ -63,6 +64,12 @@ class BalancesNotifier extends StateNotifier<Map<String, BalanceInfo>> {
       final map = <String, BalanceInfo>{};
       for (final b in balances) {
         map[b.providerId] = b;
+        if (b.supportsBalance) {
+          HistoryService.recordSnapshot(
+            providerId: b.providerId,
+            balance: b.balance,
+          );
+        }
       }
       state = map;
     } finally {
@@ -73,6 +80,12 @@ class BalancesNotifier extends StateNotifier<Map<String, BalanceInfo>> {
   Future<void> refreshOne(ProviderConfig config) async {
     final balance = await BalanceService.refreshProvider(config);
     state = {...state, balance.providerId: balance};
+    if (balance.supportsBalance) {
+      HistoryService.recordSnapshot(
+        providerId: balance.providerId,
+        balance: balance.balance,
+      );
+    }
   }
 }
 
