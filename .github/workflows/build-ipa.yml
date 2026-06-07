@@ -37,31 +37,26 @@ jobs:
 
       - name: Build unsigned .app
         run: |
-          # Let Flutter set up workspace + pod install + compile Dart
-          # (xcodebuild part will fail on signing — that's expected)
+          # Flutter sets up workspace + pod install + compiles Dart
           flutter build ios --no-codesign --release 2>&1 | tail -5 || true
 
-          # If .app is incomplete, rebuild with xcodebuild CLI overrides
-          if [ ! -f "build/ios/Release-iphoneos/Runner.app/Info.plist" ]; then
-            echo "Flutter .app incomplete — rebuilding with xcodebuild"
+          # Always rebuild with xcodebuild for a complete .app
+          flutter assemble --release -o build/ios/Release-iphoneos
 
-            flutter assemble --release -o build/ios/Release-iphoneos
-
-            cd ios
-            xcodebuild \
-              -workspace Runner.xcworkspace \
-              -scheme Runner \
-              -sdk iphoneos \
-              -configuration Release \
-              -derivedDataPath ../build/ios \
-              CODE_SIGNING_ALLOWED=NO \
-              CODE_SIGNING_REQUIRED=NO \
-              CODE_SIGN_IDENTITY="" \
-              DEVELOPMENT_TEAM="" \
-              PROVISIONING_PROFILE_SPECIFIER="" \
-              build 2>&1 | tail -20
-            cd ..
-          fi
+          cd ios
+          xcodebuild \
+            -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -sdk iphoneos \
+            -configuration Release \
+            -derivedDataPath ../build/ios \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            build 2>&1 | tail -20
+          cd ..
 
           APP_PATH="build/ios/Release-iphoneos/Runner.app"
           ls -la "$APP_PATH/Info.plist" || { echo "FATAL: No Info.plist"; exit 1; }
