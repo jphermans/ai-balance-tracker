@@ -37,35 +37,32 @@ jobs:
 
       - name: Build unsigned .app
         run: |
-          # Let Flutter set up workspace + compile Dart
-          flutter build ios --no-codesign --release 2>&1 | tail -5 || true
+          # Set up CocoaPods workspace (flutter build ios does this but fails on signing)
+          cd ios && pod install && cd ..
 
-          # Check for a VALID .app (directory alone isn't enough — need Info.plist)
+          # Compile Dart to native
+          flutter assemble --release -o build/ios/Release-iphoneos
+
+          # Build .app with xcodebuild — CLI args override signing
+          cd ios
+          xcodebuild \
+            -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -sdk iphoneos \
+            -configuration Release \
+            CONFIGURATION_BUILD_DIR="../build/ios/Release-iphoneos" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            build 2>&1 | tail -20
+          cd ..
+
           APP_PATH="build/ios/Release-iphoneos/Runner.app"
-
-          if [ ! -f "$APP_PATH/Info.plist" ]; then
-            echo "Flutter build incomplete — rebuilding with xcodebuild CLI overrides"
-            flutter assemble --release -o build/ios/Release-iphoneos
-
-            cd ios
-            xcodebuild \
-              -workspace Runner.xcworkspace \
-              -scheme Runner \
-              -sdk iphoneos \
-              -configuration Release \
-              CONFIGURATION_BUILD_DIR="../build/ios/Release-iphoneos" \
-              CODE_SIGNING_ALLOWED=NO \
-              CODE_SIGNING_REQUIRED=NO \
-              CODE_SIGN_IDENTITY="" \
-              DEVELOPMENT_TEAM="" \
-              PROVISIONING_PROFILE_SPECIFIER="" \
-              build 2>&1 | tail -20
-            cd ..
-          fi
-
+          ls -la "$APP_PATH/Info.plist" || { echo "FATAL: No Info.plist"; exit 1; }
           echo "APP_PATH=$APP_PATH" >> $GITHUB_ENV
-          ls -la "$APP_PATH/Info.plist" || { echo "FATAL: No Info.plist produced"; exit 1; }
-          echo "::notice::.app ready at $APP_PATH"
+          echo "::notice::.app ready"
 
       - name: Package unsigned IPA
         run: |
