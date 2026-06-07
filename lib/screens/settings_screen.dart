@@ -182,7 +182,12 @@ class SettingsScreen extends ConsumerWidget {
                 ListTile(
                   leading: const Icon(Icons.info_outline_rounded),
                   title: const Text('AI Balance Tracker'),
-                  subtitle: const Text('Version 1.5.0'),
+                  subtitle: Consumer(
+                    builder: (context, ref, _) {
+                      final version = ref.watch(appVersionProvider).valueOrNull ?? '';
+                      return Text('Version $version');
+                    },
+                  ),
                   trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: () => context.push('/about'),
                 ),
