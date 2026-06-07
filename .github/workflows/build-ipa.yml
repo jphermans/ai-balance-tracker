@@ -37,12 +37,16 @@ jobs:
 
       - name: Build unsigned .app
         run: |
-          # Let Flutter set up workspace + run pod install (signing part may fail)
+          # Let Flutter set up workspace + compile Dart (signing part may fail)
           flutter build ios --no-codesign --release 2>&1 | tail -5 || true
 
-          # If Flutter's xcodebuild failed on signing, rebuild with CLI overrides
-          if [ ! -d "build/ios/Release-iphoneos/Runner.app" ]; then
-            # Regenerate native code (Dart already compiled by flutter build)
+          # Check if flutter produced the .app
+          APP_PATH="build/ios/Release-iphoneos/Runner.app"
+
+          if [ ! -d "$APP_PATH" ]; then
+            echo "Flutter signing failed — rebuilding with xcodebuild CLI overrides"
+
+            # Regenerate native code
             flutter assemble --release -o build/ios/Release-iphoneos
 
             cd ios
@@ -51,7 +55,6 @@ jobs:
               -scheme Runner \
               -sdk iphoneos \
               -configuration Release \
-              CONFIGURATION_BUILD_DIR="../build/ios/Release-iphoneos" \
               CODE_SIGNING_ALLOWED=NO \
               CODE_SIGNING_REQUIRED=NO \
               CODE_SIGN_IDENTITY="" \
@@ -59,20 +62,33 @@ jobs:
               PROVISIONING_PROFILE_SPECIFIER="" \
               build 2>&1 | tail -20
             cd ..
+
+            # Find the .app wherever xcodebuild put it
+            APP_PATH=$(find build -name "Runner.app" -type d -path "*/Release-iphoneos/*" | head -1)
+            echo "Found .app at: $APP_PATH"
           fi
 
-          # Verify
-          ls -la build/ios/Release-iphoneos/Runner.app || exit 1
-          echo "::notice::IPA ready for Sideloadly signing"
+          # Verify .app has Info.plist
+          if [ ! -f "$APP_PATH/Info.plist" ]; then
+            echo "ERROR: No Info.plist in $APP_PATH"
+            ls -la "$APP_PATH/" 2>/dev/null || echo "(dir not found)"
+            exit 1
+          fi
+
+          echo "APP_PATH=$APP_PATH" >> $GITHUB_ENV
+          echo "::notice::.app ready at $APP_PATH"
 
       - name: Package unsigned IPA
         run: |
-          APP_PATH="build/ios/Release-iphoneos/Runner.app"
+          APP_PATH="${APP_PATH:-build/ios/Release-iphoneos/Runner.app}"
+          echo "Packaging from: $APP_PATH"
           mkdir -p Payload
           cp -R "$APP_PATH" Payload/
           zip -r -y ai-balance-tracker-unsigned.ipa Payload
           rm -rf Payload
           echo "::notice::IPA created: $(du -h ai-balance-tracker-unsigned.ipa | cut -f1)"
+          # Quick sanity check
+          unzip -l ai-balance-tracker-unsigned.ipa | grep Info.plist || echo "WARNING: No Info.plist in IPA!"
 
       - name: Upload unsigned IPA
         uses: actions/upload-artifact@v4
