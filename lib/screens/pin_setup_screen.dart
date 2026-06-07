@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/pin_service.dart';
 import '../state/app_state.dart';
 import 'package:go_router/go_router.dart';
+import '../widgets/pin_pad.dart';
 
 /// Full-screen PIN setup page with rich onboarding UI.
 /// Appears on first launch (after splash) when no PIN is set,
@@ -243,7 +244,7 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen>
                   const SizedBox(height: 24),
 
                   // Pin pad
-                  _PinPad(
+                  PinPad(
                     onDigit: (_saving || _success) ? null : _onDigit,
                     onDelete: (_saving || _success) ? null : _onDelete,
                   ),
@@ -383,113 +384,3 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen>
   }
 }
 
-// ---------------------------------------------------------------------------
-// Custom numeric keypad (iOS style)
-// ---------------------------------------------------------------------------
-
-class _PinPad extends StatelessWidget {
-  final void Function(String)? onDigit;
-  final VoidCallback? onDelete;
-
-  const _PinPad({this.onDigit, this.onDelete});
-
-  @override
-  Widget build(BuildContext context) {
-    final disabled = onDigit == null;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Column(
-        children: [
-          for (var row = 0; row < 4; row++)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                for (var col = 0; col < 3; col++)
-                  _pinButton(context, row * 3 + col + 1, disabled),
-              ],
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _pinButton(BuildContext context, int num, bool disabled) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    if (num == 10) {
-      return const SizedBox(width: 80, height: 64);
-    }
-    if (num == 11) {
-      return _KeyButton(
-        child: Text(
-          '0',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w500,
-            color: disabled
-                ? colorScheme.onSurface.withValues(alpha: 0.2)
-                : colorScheme.onSurface,
-          ),
-        ),
-        onTap: disabled ? null : () => onDigit?.call('0'),
-      );
-    }
-    if (num == 12) {
-      return _KeyButton(
-        child: Icon(
-          Icons.backspace_outlined,
-          size: 26,
-          color: disabled
-              ? colorScheme.onSurface.withValues(alpha: 0.2)
-              : colorScheme.onSurface,
-        ),
-        onTap: disabled ? null : onDelete,
-      );
-    }
-    return _KeyButton(
-      child: Text(
-        '$num',
-        style: TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.w500,
-          color: disabled
-              ? colorScheme.onSurface.withValues(alpha: 0.2)
-              : colorScheme.onSurface,
-        ),
-      ),
-      onTap: disabled ? null : () => onDigit?.call('$num'),
-    );
-  }
-}
-
-class _KeyButton extends StatelessWidget {
-  final Widget child;
-  final VoidCallback? onTap;
-
-  const _KeyButton({required this.child, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 80,
-      height: 64,
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          splashColor: Theme.of(context)
-              .colorScheme
-              .primary
-              .withValues(alpha: 0.1),
-          highlightColor: Theme.of(context)
-              .colorScheme
-              .primary
-              .withValues(alpha: 0.05),
-          child: Center(child: child),
-        ),
-      ),
-    );
-  }
-}
