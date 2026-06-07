@@ -1,0 +1,3 @@
+/// App version — set at compile time via --dart-define=APP_VERSION=...
+/// Falls back to '0.0.0' for local dev without the flag.
+const String appVersion = String.fromEnvironment('APP_VERSION', defaultValue: '0.0.0');

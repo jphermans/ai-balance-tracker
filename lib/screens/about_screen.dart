@@ -65,7 +65,7 @@ class AboutScreen extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Consumer(
                   builder: (context, ref, _) {
-                    final version = ref.watch(appVersionProvider).valueOrNull ?? '';
+                    final version = ref.watch(appVersionProvider);
                     return Text(
                       'Version $version',
                       style: theme.textTheme.bodyMedium?.copyWith(

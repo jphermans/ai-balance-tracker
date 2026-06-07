@@ -184,7 +184,7 @@ class SettingsScreen extends ConsumerWidget {
                   title: const Text('AI Balance Tracker'),
                   subtitle: Consumer(
                     builder: (context, ref, _) {
-                      final version = ref.watch(appVersionProvider).valueOrNull ?? '';
+                      final version = ref.watch(appVersionProvider);
                       return Text('Version $version');
                     },
                   ),

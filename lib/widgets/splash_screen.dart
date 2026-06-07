@@ -124,7 +124,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 opacity: _fadeIn,
                 child: Consumer(
                   builder: (context, ref, _) {
-                    final version = ref.watch(appVersionProvider).valueOrNull ?? '';
+                    final version = ref.watch(appVersionProvider);
                     return Text(
                       version,
                       textAlign: TextAlign.center,

@@ -5,7 +5,7 @@ import '../models/provider_config.dart';
 import '../services/secure_storage_service.dart';
 import '../services/balance_service.dart';
 import '../services/pin_service.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+import '../app_version.dart';
 
 /// Manages the list of configured providers.
 class ProvidersNotifier extends StateNotifier<List<ProviderConfig>> {
@@ -137,15 +137,6 @@ final isLoadingProvider = Provider<bool>((ref) {
   return ref.watch(balancesProvider.notifier).isLoading;
 });
 
-/// Reads app version from pubspec.yaml at runtime via package_info_plus.
-/// Single source of truth — update version in pubspec.yaml only.
-final appVersionProvider = FutureProvider<String>((ref) async {
-  final info = await PackageInfo.fromPlatform();
-  return 'v${info.version}';
-});
-
-/// Build number (e.g. "10" from "1.5.1+10").
-final appBuildNumberProvider = FutureProvider<String>((ref) async {
-  final info = await PackageInfo.fromPlatform();
-  return info.buildNumber;
-});
+/// App version from pubspec.yaml, injected at build time via --dart-define.
+/// Update version in pubspec.yaml only — CI passes it automatically.
+final appVersionProvider = Provider<String>((ref) => appVersion);
