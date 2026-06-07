@@ -6,8 +6,8 @@ class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
   static const _repoUrl = 'https://github.com/jphermans/ai-balance-tracker';
-  static const _version = '1.4.0';
-  static const _buildNumber = '7';
+  static const _version = '1.5.0';
+  static const _buildNumber = '9';
 
   @override
   Widget build(BuildContext context) {

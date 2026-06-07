@@ -7,6 +7,7 @@ import 'screens/dashboard_screen.dart';
 import 'screens/provider_detail_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/add_provider_screen.dart';
+import 'models/provider_config.dart';
 import 'screens/pin_unlock_screen.dart';
 import 'screens/pin_setup_screen.dart';
 import 'screens/about_screen.dart';
@@ -36,7 +37,9 @@ final _routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/add-provider',
         name: 'add-provider',
-        builder: (context, state) => const AddProviderScreen(),
+        builder: (context, state) => AddProviderScreen(
+          existingConfig: state.extra as ProviderConfig?,
+        ),
       ),
       GoRoute(
         path: '/pin-setup',

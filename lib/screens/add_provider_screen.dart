@@ -5,7 +5,10 @@ import '../state/app_state.dart';
 import '../models/provider_config.dart';
 
 class AddProviderScreen extends ConsumerStatefulWidget {
-  const AddProviderScreen({super.key});
+  /// Optional existing config for editing mode.
+  final ProviderConfig? existingConfig;
+
+  const AddProviderScreen({super.key, this.existingConfig});
 
   @override
   ConsumerState<AddProviderScreen> createState() => _AddProviderScreenState();
@@ -38,6 +41,21 @@ class _AddProviderScreenState extends ConsumerState<AddProviderScreen> {
     super.dispose();
   }
 
+  bool get _isEditing => widget.existingConfig != null;
+  ProviderConfig? get _existing => widget.existingConfig;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_existing != null) {
+      _selectedType = _existing!.type;
+      _keyController.text = _existing!.apiKey;
+      _orgController.text = _existing!.orgId ?? '';
+      _accountController.text = _existing!.accountId ?? '';
+      _endpointController.text = _existing!.customEndpoint ?? '';
+    }
+  }
+
   bool get _canSave =>
       _selectedType != null && _keyController.text.trim().isNotEmpty;
 
@@ -61,12 +79,18 @@ class _AddProviderScreenState extends ConsumerState<AddProviderScreen> {
             : _endpointController.text.trim(),
       );
 
-      await ref.read(providersProvider.notifier).addProvider(config);
+      if (_isEditing) {
+        await ref.read(providersProvider.notifier).updateProvider(config);
+      } else {
+        await ref.read(providersProvider.notifier).addProvider(config);
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${_selectedType!.displayName} added successfully'),
+            content: Text(_isEditing
+                ? '${_selectedType!.displayName} updated'
+                : '${_selectedType!.displayName} added successfully'),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -93,7 +117,7 @@ class _AddProviderScreenState extends ConsumerState<AddProviderScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Provider'),
+        title: Text(_isEditing ? _existing!.type.displayName : 'Add Provider'),
         actions: [
           FilledButton(
             onPressed: _canSave && !_saving ? _save : null,

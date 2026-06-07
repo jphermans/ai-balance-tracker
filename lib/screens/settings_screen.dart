@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../state/app_state.dart';
 import '../models/provider_config.dart';
 import '../services/pin_service.dart';
+import 'add_provider_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -173,7 +174,7 @@ class SettingsScreen extends ConsumerWidget {
                 ListTile(
                   leading: const Icon(Icons.info_outline_rounded),
                   title: const Text('AI Balance Tracker'),
-                  subtitle: const Text('Version 1.4.0'),
+                  subtitle: const Text('Version 1.5.0'),
                   trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: () => context.push('/about'),
                 ),
@@ -329,7 +330,20 @@ class _ProviderTile extends ConsumerWidget {
             },
           ),
           OverflowBar(
+            alignment: MainAxisAlignment.spaceBetween,
             children: [
+              TextButton.icon(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    useSafeArea: true,
+                    builder: (_) => AddProviderScreen(existingConfig: config),
+                  );
+                },
+                icon: const Icon(Icons.edit_outlined, size: 18),
+                label: const Text('Edit'),
+              ),
               TextButton.icon(
                 onPressed: () {
                   ref.read(providersProvider.notifier).removeProvider(config.id);
