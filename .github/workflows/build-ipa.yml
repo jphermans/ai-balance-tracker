@@ -43,7 +43,9 @@ jobs:
         run: flutter analyze
 
       - name: Build unsigned .app
-        run: flutter build ios --no-codesign --release
+        run: |
+          sed -i '' 's/DEVELOPMENT_TEAM = .*;/DEVELOPMENT_TEAM = "";/g' ios/Runner.xcodeproj/project.pbxproj
+          flutter build ios --no-codesign --release
 
       - name: Package unsigned IPA
         run: |
