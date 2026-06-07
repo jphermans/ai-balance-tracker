@@ -12,9 +12,9 @@ permissions:
   contents: write  # needed for softprops/action-gh-release to create releases
 
 jobs:
-  # ── Unsigned IPA (always builds, no secrets needed) ──
+  # ── Unsigned simulator build (always builds, no secrets needed) ──
   build-unsigned:
-    name: Unsigned IPA
+    name: Simulator Build
     runs-on: macos-latest
 
     steps:
@@ -35,23 +35,30 @@ jobs:
         continue-on-error: true
         run: flutter analyze --no-fatal-warnings --no-fatal-infos
 
-      - name: Build unsigned .app
-        run: flutter build ios --no-codesign --release
+      - name: Build unsigned .app (simulator)
+        run: flutter build ios --debug --simulator
 
-      - name: Package unsigned IPA
+      - name: Package simulator .app
         run: |
-          APP_PATH="build/ios/Release-iphoneos/Runner.app"
-          mkdir -p Payload
-          cp -R "$APP_PATH" Payload/
-          zip -r -y ai-balance-tracker-unsigned.ipa Payload
-          rm -rf Payload
-          echo "::notice::IPA created: $(du -h ai-balance-tracker-unsigned.ipa | cut -f1)"
+          APP_PATH="build/ios/Debug-iphonesimulator/Runner.app"
+          if [ -d "$APP_PATH" ]; then
+            zip -r -y ai-balance-tracker-simulator.zip "$APP_PATH"
+            echo "::notice::Simulator app zipped: $(du -h ai-balance-tracker-simulator.zip | cut -f1)"
+          else
+            echo "::warning::Simulator .app not found at $APP_PATH"
+            # Fallback: try Release simulator path
+            APP_PATH="build/ios/Release-iphonesimulator/Runner.app"
+            if [ -d "$APP_PATH" ]; then
+              zip -r -y ai-balance-tracker-simulator.zip "$APP_PATH"
+              echo "::notice::Simulator app zipped (release): $(du -h ai-balance-tracker-simulator.zip | cut -f1)"
+            fi
+          fi
 
-      - name: Upload unsigned IPA
+      - name: Upload simulator .app
         uses: actions/upload-artifact@v4
         with:
-          name: ai-balance-tracker-unsigned-ipa
-          path: ai-balance-tracker-unsigned.ipa
+          name: ai-balance-tracker-simulator-app
+          path: ai-balance-tracker-simulator.zip
           retention-days: 30
 
   # ── Signed IPA (only runs if Apple secrets are set) ──
@@ -147,13 +154,13 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
 
     steps:
-      - name: Download unsigned IPA
+      - name: Download simulator build
         uses: actions/download-artifact@v4
         with:
-          name: ai-balance-tracker-unsigned-ipa
+          name: ai-balance-tracker-simulator-app
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ai-balance-tracker-unsigned.ipa
+          files: ai-balance-tracker-simulator.zip
           generate_release_notes: true
