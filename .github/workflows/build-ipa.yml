@@ -37,33 +37,28 @@ jobs:
 
       - name: Build unsigned .app
         run: |
-          # Step 1: Let Flutter compile Dart to native code
-          # We use --no-codesign but ignore xcodebuild failure
-          flutter build ios --no-codesign --release 2>&1 | tee /tmp/build.log || true
+          # Compile Dart to native code (without xcodebuild)
+          flutter assemble --release -o build/ios/Release-iphoneos
 
-          # Step 2: If flutter failed, try xcodebuild directly with signing overrides
-          if [ ! -d "build/ios/Release-iphoneos/Runner.app" ]; then
-            echo "Flutter build didn't produce .app — trying xcodebuild directly"
-            flutter assemble --release -o build/ios/Release-iphoneos
-
-            cd ios
-            xcodebuild \
-              -workspace Runner.xcworkspace \
-              -scheme Runner \
-              -sdk iphoneos \
-              -configuration Release \
-              -derivedDataPath ../build/ios \
-              CODE_SIGNING_ALLOWED=NO \
-              CODE_SIGNING_REQUIRED=NO \
-              CODE_SIGN_IDENTITY="" \
-              DEVELOPMENT_TEAM="" \
-              PROVISIONING_PROFILE_SPECIFIER="" \
-              build 2>&1 | tail -30
-            cd ..
-          fi
+          # Build with xcodebuild directly — CLI args override ALL project settings
+          cd ios
+          xcodebuild \
+            -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -sdk iphoneos \
+            -configuration Release \
+            -derivedDataPath ../build/ios \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            build 2>&1 | tail -20
+          cd ..
 
           # Verify output
-          ls -la build/ios/Release-iphoneos/Runner.app 2>/dev/null || echo "ERROR: No .app produced"
+          ls -la build/ios/Release-iphoneos/Runner.app || exit 1
+          echo "::notice::Build succeeded"
 
       - name: Package unsigned IPA
         run: |
