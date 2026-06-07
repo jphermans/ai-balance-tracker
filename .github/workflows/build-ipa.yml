@@ -12,32 +12,14 @@ permissions:
   contents: write
 
 jobs:
-  # ── Unsigned IPA (always builds, no secrets needed) ──
   build-unsigned:
     name: Unsigned IPA
     runs-on: macos-14
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Select Xcode (use 15.x for --no-codesign)
-        run: |
-          ls /Applications/Xcode*.app 2>/dev/null || echo "No Xcode apps found"
-          # Try Xcode 15.4 first, fall back to whatever 15.x is available
-          for xc in /Applications/Xcode_15.4.app /Applications/Xcode_15.2.app /Applications/Xcode_15.1.app /Applications/Xcode_15.0.app; do
-            if [ -d "$xc" ]; then
-              echo "Selecting: $xc"
-              sudo xcode-select -s "$xc"
-              exit 0
-            fi
-          done
-          echo "No Xcode 15.x found, listing all:"
-          ls -d /Applications/Xcode*.app 2>/dev/null
-          xcodebuild -version
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.38.5'
           channel: 'stable'
@@ -51,33 +33,47 @@ jobs:
         run: flutter analyze --no-fatal-warnings --no-fatal-infos
 
       - name: Build unsigned .app
-        run: flutter build ios --no-codesign --release
+        run: |
+          # Flutter compiles Dart + sets up workspace
+          flutter build ios --no-codesign --release 2>&1 | tail -3 || true
+
+          # xcodebuild with CODE_SIGNING_ALLOWED=NO overrides everything
+          cd ios
+          xcodebuild \
+            -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -sdk iphoneos \
+            -configuration Release \
+            -derivedDataPath ../build/ios \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            build 2>&1 | tail -10
+          cd ..
+
+          ls -la build/ios/Release-iphoneos/Runner.app/Info.plist || exit 1
 
       - name: Package unsigned IPA
         run: |
-          APP_PATH="build/ios/Release-iphoneos/Runner.app"
-          mkdir -p Payload
-          cp -R "$APP_PATH" Payload/
+          cp -R build/ios/Release-iphoneos/Runner.app Payload/
           zip -r -y ai-balance-tracker-unsigned.ipa Payload
           rm -rf Payload
-          echo "::notice::IPA created: $(du -h ai-balance-tracker-unsigned.ipa | cut -f1)"
 
-      - name: Upload unsigned IPA
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: ai-balance-tracker-unsigned-ipa
           path: ai-balance-tracker-unsigned.ipa
           retention-days: 30
 
-  # ── Signed IPA (only runs if Apple secrets are set) ──
   build-signed:
     name: Signed IPA (ad-hoc)
     runs-on: macos-14
     if: github.event_name != 'pull_request'
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Check secrets
         id: check-secrets
@@ -89,13 +85,8 @@ jobs:
             echo "has_secrets=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Select Xcode 15.4
+      - uses: subosito/flutter-action@v2
         if: steps.check-secrets.outputs.has_secrets == 'true'
-        run: sudo xcode-select -s /Applications/Xcode_15.4.app
-
-      - name: Setup Flutter
-        if: steps.check-secrets.outputs.has_secrets == 'true'
-        uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.38.5'
           channel: 'stable'
@@ -132,7 +123,7 @@ jobs:
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          cat > ios/ExportOptions.plist << PLIST
+          cat > ios/ExportOptions.plist << 'PLIST'
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
@@ -150,15 +141,13 @@ jobs:
           PLIST
           flutter build ipa --export-options-plist=ios/ExportOptions.plist --release --no-tree-shake-icons
 
-      - name: Upload signed IPA
+      - uses: actions/upload-artifact@v4
         if: steps.check-secrets.outputs.has_secrets == 'true'
-        uses: actions/upload-artifact@v4
         with:
           name: ai-balance-tracker-signed-ipa
           path: build/ios/ipa/*.ipa
           retention-days: 30
 
-  # ── GitHub Release (tags only) ──
   release:
     name: Create Release
     runs-on: ubuntu-latest
@@ -166,13 +155,11 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
 
     steps:
-      - name: Download unsigned IPA
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: ai-balance-tracker-unsigned-ipa
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v2
         with:
           files: ai-balance-tracker-unsigned.ipa
           generate_release_notes: true
