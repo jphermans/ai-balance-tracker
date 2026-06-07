@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import '../models/balance_info.dart';
 import '../models/provider_config.dart';
 import '../services/secure_storage_service.dart';
@@ -147,4 +148,20 @@ final pinProvider = StateNotifierProvider<PinNotifier, bool>((ref) {
 
 final isLoadingProvider = Provider<bool>((ref) {
   return ref.watch(balancesProvider.notifier).isLoading;
+});
+
+/// Tracks whether the device currently has network connectivity.
+final connectivityProvider = StreamProvider<List<ConnectivityResult>>((ref) {
+  return Connectivity().onConnectivityChanged;
+});
+
+/// Derived: true when the device has NO network connection.
+final isOfflineProvider = Provider<bool>((ref) {
+  final connectivity = ref.watch(connectivityProvider);
+  return connectivity.when(
+    data: (results) => results.isEmpty ||
+        results.every((r) => r == ConnectivityResult.none),
+    loading: () => false, // assume online while checking
+    error: (_, __) => false,
+  );
 });

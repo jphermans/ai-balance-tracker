@@ -5,11 +5,13 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-16.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.6.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+[![Version](https://img.shields.io/badge/version-1.7.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 
 ## Features
 
 - **Unified Dashboard** — View balances from all your AI providers in one place
+- **Auto-Refresh on Launch** — Balances load automatically when the app starts
+- **Offline Banner** — Orange banner warns when device has no network connection
 - **8 providers with full balance tracking** — OpenAI, Anthropic, DeepSeek, OpenRouter, Together AI, Groq, SiliconFlow, Moonshot
 - **19 providers total** — Remaining 11 use key validation when balance API is unavailable
 - **Spending History Chart** — 7/30/90-day balance snapshots with interactive line chart and touch tooltips
