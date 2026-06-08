@@ -8,6 +8,7 @@ import 'groq_provider.dart';
 import 'together_provider.dart';
 import 'siliconflow_provider.dart';
 import 'moonshot_provider.dart';
+import 'qwen_provider.dart';
 import 'stub_provider.dart';
 
 /// Registry that maps ProviderType to the correct AIProvider implementation.
@@ -33,6 +34,8 @@ class ProviderRegistry {
         return SiliconFlowProvider(config);
       case ProviderType.moonshot:
         return MoonshotProvider(config);
+      case ProviderType.qwen:
+        return QwenProvider(config);
       // All other providers use the stub
       default:
         return StubProvider(config);

@@ -389,6 +389,8 @@ class _ProviderDetailScreenState extends ConsumerState<ProviderDetailScreen> {
         return '/v1/user/info';
       case ProviderType.moonshot:
         return '/v1/users/me/balance';
+      case ProviderType.qwen:
+        return '/v1/models';
       default:
         return '/v1/models';
     }

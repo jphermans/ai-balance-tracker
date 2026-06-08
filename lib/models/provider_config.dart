@@ -81,7 +81,8 @@ enum ProviderType {
   replicate,
   huggingface,
   sambanova,
-  ai21;
+  ai21,
+  qwen;
 
   String get displayName {
     switch (this) {
@@ -125,6 +126,8 @@ enum ProviderType {
         return 'SambaNova';
       case ProviderType.ai21:
         return 'AI21 Labs';
+      case ProviderType.qwen:
+        return 'Qwen (Alibaba)';
     }
   }
 
@@ -170,6 +173,8 @@ enum ProviderType {
         return 'https://api.sambanova.ai';
       case ProviderType.ai21:
         return 'https://api.ai21.com';
+      case ProviderType.qwen:
+        return 'https://dashscope-intl.aliyuncs.com/compatible-mode';
     }
   }
 
@@ -183,6 +188,7 @@ enum ProviderType {
       case ProviderType.together:
       case ProviderType.siliconflow:
       case ProviderType.moonshot:
+      case ProviderType.qwen:
         return true;
       default:
         return false;

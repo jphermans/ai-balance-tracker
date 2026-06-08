@@ -103,6 +103,19 @@ class ModelInfo {
     // Cohere
     'command-r-plus': _ModelPricing(input: 2.50, output: 10.00, ctx: 128000),
     'command-r': _ModelPricing(input: 0.50, output: 1.50, ctx: 128000),
+    // Qwen (Alibaba Cloud)
+    'qwen-turbo': _ModelPricing(input: 0.30, output: 0.60, ctx: 131072),
+    'qwen-plus': _ModelPricing(input: 0.80, output: 2.00, ctx: 131072),
+    'qwen-max': _ModelPricing(input: 2.40, output: 9.60, ctx: 32768),
+    'qwen-long': _ModelPricing(input: 0.50, output: 2.00, ctx: 10485760),
+    'qwen-vl-plus': _ModelPricing(input: 1.50, output: 4.50, ctx: 32768),
+    'qwen-vl-max': _ModelPricing(input: 3.00, output: 9.00, ctx: 32768),
+    'qwen2.5-72b-instruct': _ModelPricing(input: 0.55, output: 2.20, ctx: 131072),
+    'qwen2.5-32b-instruct': _ModelPricing(input: 0.35, output: 1.40, ctx: 131072),
+    'qwen2.5-14b-instruct': _ModelPricing(input: 0.20, output: 0.80, ctx: 131072),
+    'qwen2.5-7b-instruct': _ModelPricing(input: 0.10, output: 0.40, ctx: 131072),
+    'qwen-coder-plus': _ModelPricing(input: 0.80, output: 2.00, ctx: 131072),
+    'qwen-coder-turbo': _ModelPricing(input: 0.30, output: 0.60, ctx: 131072),
   };
 }
 

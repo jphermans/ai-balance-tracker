@@ -5,15 +5,15 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-16.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.8.2-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+[![Version](https://img.shields.io/badge/version-1.9.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 
 ## Features
 
 - **Unified Dashboard** — View balances from all your AI providers in one place
 - **Auto-Refresh on Launch** — Balances load automatically when the app starts
 - **Offline Banner** — Orange banner warns when device has no network connection
-- **8 providers with full balance tracking** — OpenAI, Anthropic, DeepSeek, OpenRouter, Together AI, Groq, SiliconFlow, Kimi
-- **19 providers total** — Remaining 11 use key validation when balance API is unavailable
+- **9 providers with full balance tracking** — OpenAI, Anthropic, DeepSeek, OpenRouter, Together AI, Groq, SiliconFlow, Kimi
+- **20 providers total** — 11 use key validation, 1 added: Qwen (Alibaba Cloud)
 - **Spending History Chart** — 7/30/90-day balance snapshots with interactive line chart and touch tooltips
 - **CSV Export** — Export provider data and spending history via share sheet
 - **Color-Coded Provider Cards** — Green/orange/red balance threshold indicators (≥10/≥5/<5)
@@ -26,7 +26,7 @@
 - **Custom App Icon** — AI-themed neural network icon with gradient purple/blue palette
 - **Unsigned IPA in CI** — Every push produces a downloadable IPA for sideloading
 - **Developer Mode** — View raw API responses + endpoint URL per provider (always visible on detail screen)
-- **Model Browser** — Browse available models with pricing, context window, and capabilities (hardcoded pricing for 30+ popular models)
+- **Model Browser** — Browse 50+ models with pricing, context window, and capabilities across all providers
 - **Balance Not Supported Banner** — Cards clearly indicate when a provider only supports key validation
 
 ## Supported Providers
@@ -40,6 +40,7 @@
 | Together AI | ✅ | ✅ |
 | SiliconFlow | ✅ | ✅ |
 | Kimi | ✅ | ✅ |
+| Qwen (Alibaba) | ❌ | ✅ |
 | Groq | ⚠️ | ✅ |
 | Google AI Studio | ❌ | ✅ |
 | xAI | ❌ | ✅ |
@@ -86,7 +87,8 @@ lib/
 │   ├── together_provider.dart   # /v1/billing
 │   ├── siliconflow_provider.dart # /v1/user/info
 │   ├── moonshot_provider.dart   # Kimi api.moonshot.ai/v1/users/me/balance
-│   ├── stub_provider.dart       # Key validation for 11 other providers
+│   ├── qwen_provider.dart       # Qwen dashscope /compatible-mode/v1/models
+│   ├── stub_provider.dart       # Key validation for 10 other providers
 │   └── provider_registry.dart   # Provider → adapter mapping
 ├── services/
 │   ├── secure_storage_service.dart  # Keychain-backed credential storage
