@@ -40,6 +40,13 @@ jobs:
           APP="build/ios/iphoneos/Runner.app"
           echo "App bundle: $APP"
           ls -la "$APP/Info.plist" || { echo "ERROR: No Info.plist in app bundle"; exit 1; }
+          # Verify widget extension is embedded
+          if [ -d "$APP/PlugIns" ]; then
+            echo "Widget extensions found:"
+            ls -la "$APP/PlugIns/"
+          else
+            echo "::warning::No PlugIns directory — widget may not be building"
+          fi
           rm -rf Payload
           mkdir -p Payload
           cp -R "$APP" Payload/

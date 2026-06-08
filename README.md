@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-16.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.9.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+[![Version](https://img.shields.io/badge/version-1.10.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 
 ## Features
 
@@ -28,6 +28,7 @@
 - **Developer Mode** — View raw API responses + endpoint URL per provider (always visible on detail screen)
 - **Model Browser** — Browse 50+ models with pricing, context window, and capabilities across all providers
 - **Balance Not Supported Banner** — Cards clearly indicate when a provider only supports key validation
+- **iOS Home Screen Widget** — WidgetKit widget shows total balance + provider count at a glance, tap to open app, dark/light mode
 
 ## Supported Providers
 
@@ -94,6 +95,7 @@ lib/
 │   ├── secure_storage_service.dart  # Keychain-backed credential storage
 │   ├── balance_service.dart         # Parallel balance fetching
 │   ├── history_service.dart         # Balance snapshots + spending chart data
+│   ├── widget_data_service.dart     # Writes balance to App Group UserDefaults
 │   └── pin_service.dart             # PIN hash/verify/remove (Keychain)
 ├── state/
 │   └── app_state.dart           # Riverpod: providers, balances, theme, PIN
@@ -105,6 +107,19 @@ lib/
     ├── pin_pad.dart             # Shared numeric PIN keypad (iOS style)
     └── pin_setup_dialog.dart    # Create/confirm PIN (legacy bottom sheet)
 ```
+
+### iOS Widget Extension (native)
+
+```
+ios/BalanceWidget/
+├── Info.plist                          # Widget extension metadata
+├── BalanceWidgetBundle.swift           # @main WidgetBundle entry point
+├── BalanceWidget.swift                 # WidgetConfiguration + SwiftUI view
+├── BalanceProvider.swift               # TimelineProvider reading App Group
+└── BalanceWidget.entitlements          # App Group capability
+```
+
+**Data flow:** Flutter → MethodChannel → App Group UserDefaults → Widget reads on timeline refresh
 
 ## Screens
 
@@ -210,6 +225,10 @@ Create a file `entitlements.plist` (or use the one in `ios/entitlements.plist` f
     <string>YOUR_TEAM_ID</string>
     <key>get-task-allow</key>
     <true/>
+    <key>com.apple.security.application-groups</key>
+    <array>
+        <string>group.com.jphermans.ai-balance-tracker</string>
+    </array>
 </dict>
 </plist>
 ```

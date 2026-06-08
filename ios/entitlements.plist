@@ -12,5 +12,9 @@
 	<array>
 		<string>$(AppIdentifierPrefix)com.jphermans.ai-balance-tracker</string>
 	</array>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.com.jphermans.ai-balance-tracker</string>
+	</array>
 </dict>
 </plist>
