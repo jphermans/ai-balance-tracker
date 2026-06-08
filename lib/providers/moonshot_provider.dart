@@ -25,10 +25,9 @@ class MoonshotProvider extends AIProvider {
         final raw = jsonDecode(resp.body);
         // Response: { code: 0, data: { available_balance, voucher_balance, cash_balance }, status: true }
         final data = raw['data'] as Map<String, dynamic>? ?? raw;
-        final balance = (data['available_balance'] as num?)?.toDouble() ?? 0;
-        final voucherBalance = (data['voucher_balance'] as num?)?.toDouble() ?? 0;
-        final cashBalance = (data['cash_balance'] as num?)?.toDouble() ?? 0;
-        final currency = (data['currency'] as String?) ?? 'CNY';
+        final rawBalance = (data['available_balance'] as num?)?.toDouble() ?? 0;
+        final balance = rawBalance * 0.14; // CNY → USD
+        final currency = 'USD'; // converted from CNY
 
         return BalanceInfo(
           providerId: providerId,
@@ -54,7 +53,7 @@ class MoonshotProvider extends AIProvider {
           providerId: providerId,
           providerName: type.displayName,
           balance: 0,
-          currency: 'CNY',
+          currency: 'USD',
           lastUpdated: DateTime.now(),
           status: BalanceStatus.invalidKey,
           rawResponse: {'error': 'HTTP ${resp.statusCode}', 'body': errorBody},
@@ -67,7 +66,7 @@ class MoonshotProvider extends AIProvider {
         providerId: providerId,
         providerName: type.displayName,
         balance: 0,
-        currency: 'CNY',
+        currency: 'USD',
         lastUpdated: DateTime.now(),
         status: handleError(e),
         rawResponse: {'error': e.toString()},
