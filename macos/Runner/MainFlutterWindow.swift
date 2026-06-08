@@ -28,9 +28,10 @@ class MainFlutterWindow: NSWindow {
     self.titlebarAppearsTransparent = false
     self.isMovableByWindowBackground = false
     
-    // Fixed window — no resize
-    self.styleMask.remove(.resizable)
+    // Resizable window with minimum 800×600
     self.contentMinSize = NSSize(width: windowWidth, height: windowHeight)
-    self.contentMaxSize = NSSize(width: windowWidth, height: CGFloat.greatestFiniteMagnitude)
+    
+    // Fullscreen — keep the green button functional
+    self.collectionBehavior = [.fullScreenPrimary]
   }
 }
