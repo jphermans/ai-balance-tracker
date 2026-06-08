@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../state/app_state.dart';
 import '../models/provider_config.dart';
+import '../widgets/glass_card.dart';
 
 class AddProviderScreen extends ConsumerStatefulWidget {
   /// Optional existing config for editing mode.
@@ -173,21 +174,11 @@ class _AddProviderScreenState extends ConsumerState<AddProviderScreen> {
 
           // API Key
           if (_selectedType != null) ...[
-            Text(
-              'CREDENTIALS',
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 1,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    TextField(
+            GlassSectionLabel('CREDENTIALS'),
+            GlassCard(
+              child: Column(
+                children: [
+                  TextField(
                       controller: _keyController,
                       obscureText: !_showKey,
                       onChanged: (_) => setState(() {}),
@@ -234,15 +225,14 @@ class _AddProviderScreenState extends ConsumerState<AddProviderScreen> {
                             const Icon(Icons.link_rounded),
                       ),
                     ),
-                  ],
-                ),
+                ],
               ),
             ),
             const SizedBox(height: 16),
 
             // Info card
-            Card(
-              color: theme.colorScheme.primaryContainer,
+            GlassCard(
+              backgroundColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(

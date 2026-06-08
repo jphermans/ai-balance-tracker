@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/balance_info.dart';
 import '../theme/app_theme.dart';
+import 'glass_card.dart';
 
 class ProviderCard extends StatelessWidget {
   final BalanceInfo info;
@@ -13,8 +14,9 @@ class ProviderCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
+    return GlassCard(
+      onTap: onTap,
+      padding: EdgeInsets.zero,
       child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -23,125 +25,126 @@ class ProviderCard extends StatelessWidget {
             if (info.supportsBalance && info.status == BalanceStatus.active)
               Container(
                 width: 4,
-                color: _balanceColor(info.balance),
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: _balanceColor(info.balance),
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(4),
+                    bottomRight: Radius.circular(4),
+                  ),
+                ),
               ),
             // Card content
             Expanded(
-              child: InkWell(
-                onTap: onTap,
-                borderRadius: BorderRadius.circular(16),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          _ProviderIcon(type: info.providerId),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              info.providerName,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        _ProviderIcon(type: info.providerId),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            info.providerName,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                          _StatusBadge(status: info.status),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            _formatBalance(info.balance),
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: info.supportsBalance &&
-                                      info.status == BalanceStatus.active
-                                  ? _balanceColor(info.balance)
-                                  : colorScheme.onSurface,
+                        ),
+                        _StatusBadge(status: info.status),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          _formatBalance(info.balance),
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: info.supportsBalance &&
+                                    info.status == BalanceStatus.active
+                                ? _balanceColor(info.balance)
+                                : colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Text(
+                            info.currency,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
                             ),
                           ),
-                          const SizedBox(width: 4),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: Text(
-                              info.currency,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      if (info.totalSpent != null) ...[
-                        LinearProgressIndicator(
-                          value: info.totalCredits != null && info.totalCredits! > 0
-                              ? (info.totalSpent! / info.totalCredits!).clamp(0.0, 1.0)
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    if (info.totalSpent != null) ...[
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: info.totalCredits != null &&
+                                  info.totalCredits! > 0
+                              ? (info.totalSpent! / info.totalCredits!)
+                                  .clamp(0.0, 1.0)
                               : null,
                           backgroundColor: colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                      Text(
-                        'Updated ${_formatTimestamp(info.lastUpdated)}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                          minHeight: 3,
                         ),
                       ),
-                      // Banner for providers without balance API support
-                      if (!info.supportsBalance) ...[
-                        const SizedBox(height: 12),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.amber.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: Colors.amber.withValues(alpha: 0.3),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.info_outline_rounded,
-                                size: 16,
-                                color: Colors.amber.shade700,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  'Balance check not supported — key validation only',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: Colors.amber.shade800,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ],
+                      const SizedBox(height: 8),
+                    ],
+                    Text(
+                      'Updated ${_formatTimestamp(info.lastUpdated)}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    if (!info.supportsBalance) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Colors.amber.withValues(alpha: 0.25),
                           ),
                         ),
-                      ],
+                        child: Row(
+                          children: [
+                            Icon(Icons.info_outline_rounded,
+                                size: 16, color: Colors.amber.shade700),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Balance check not supported — key validation only',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: Colors.amber.shade800,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
-                  ),
+                  ],
                 ),
-              ), // InkWell
-            ), // Expanded
-            ], // Row children
-          ), // IntrinsicHeight
-        ), // Card
-      );
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
-  /// Returns a color based on balance thresholds:
-  /// - Red: < 5 (critical)
-  /// - Orange: 5 to < 10 (warning)
-  /// - Green: >= 10 (healthy)
   Color _balanceColor(double balance) {
     if (balance < 5) return Colors.red;
     if (balance < 10) return Colors.orange;
@@ -174,8 +177,11 @@ class _ProviderIcon extends StatelessWidget {
       width: 44,
       height: 44,
       decoration: BoxDecoration(
-        color: colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(12),
+        color: colorScheme.primaryContainer.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: colorScheme.primary.withValues(alpha: 0.15),
+        ),
       ),
       child: Center(
         child: Text(
@@ -204,10 +210,11 @@ class _StatusBadge extends StatelessWidget {
     };
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
+        color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.20)),
       ),
       child: Text(
         status.displayName,

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../state/app_state.dart';
 import '../models/balance_info.dart';
 import '../widgets/provider_card.dart';
+import '../widgets/glass_card.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -160,30 +161,34 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                        child: Row(
-                          children: [
-                            Text(
-                              'Total Balance',
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
+                        child: GlassCard(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          borderRadius: 16,
+                          child: Row(
+                            children: [
+                              Text(
+                                'Total Balance',
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '\$${totalBalance.toStringAsFixed(2)}',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: theme.colorScheme.primary,
+                              const SizedBox(width: 8),
+                              Text(
+                                '\$${totalBalance.toStringAsFixed(2)}',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: theme.colorScheme.primary,
+                                ),
                               ),
-                            ),
-                            const Spacer(),
-                            Text(
-                              '${filtered.length} providers',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
+                              const Spacer(),
+                              Text(
+                                '${filtered.length} providers',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),

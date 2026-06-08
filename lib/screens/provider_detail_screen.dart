@@ -11,6 +11,7 @@ import '../services/history_service.dart';
 import '../models/provider_config.dart' show ProviderType;
 import '../models/model_info.dart';
 import '../providers/provider_registry.dart';
+import '../widgets/glass_card.dart';
 
 class ProviderDetailScreen extends ConsumerStatefulWidget {
   final String providerId;
@@ -151,27 +152,25 @@ class _ProviderDetailScreenState extends ConsumerState<ProviderDetailScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             // Balance card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    Text(
-                      'Current Balance',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+            GlassCard(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  Text(
+                    'Current Balance',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${info.balance.toStringAsFixed(2)} ${info.currency}',
-                      style: theme.textTheme.headlineLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.primary,
-                      ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${info.balance.toStringAsFixed(2)} ${info.currency}',
+                    style: theme.textTheme.headlineLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.primary,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 16),
@@ -222,7 +221,8 @@ class _ProviderDetailScreenState extends ConsumerState<ProviderDetailScreen> {
             ),
             const SizedBox(height: 24),
             // Available models
-            Card(
+            GlassCard(
+              padding: EdgeInsets.zero,
               child: InkWell(
                 onTap: _showModelsSheet,
                 borderRadius: BorderRadius.circular(16),
@@ -304,7 +304,8 @@ class _ProviderDetailScreenState extends ConsumerState<ProviderDetailScreen> {
               const SizedBox(height: 24),
             ],
             // Raw API section — always visible for debugging
-            Card(
+            GlassCard(
+              padding: EdgeInsets.zero,
               child: ExpansionTile(
                 leading: const Icon(Icons.code_rounded),
                 title: const Text('Raw API Response'),
@@ -578,10 +579,10 @@ class _StatCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+    return GlassCard(
+      padding: const EdgeInsets.all(16),
+      borderRadius: 14,
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(icon, size: 20, color: colorScheme.primary),
@@ -608,8 +609,7 @@ class _StatCard extends StatelessWidget {
               ),
           ],
         ),
-      ),
-    );
+      );
   }
 }
 
@@ -629,10 +629,10 @@ class _BalanceChart extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+    return GlassCard(
+      padding: const EdgeInsets.all(16),
+      borderRadius: 14,
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -674,8 +674,7 @@ class _BalanceChart extends StatelessWidget {
               ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildChart(ColorScheme colorScheme) {

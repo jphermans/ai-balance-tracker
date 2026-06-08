@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../app_version.dart';
+import '../widgets/glass_card.dart';
 
 /// About screen with app info, tech stack, credits, and links.
 class AboutScreen extends StatelessWidget {
@@ -56,7 +57,7 @@ class AboutScreen extends StatelessWidget {
           // ── Description ─────────────────────────────────────────
           _SectionHeader(title: 'About', colorScheme: colorScheme),
           const SizedBox(height: 8),
-          Card(
+          GlassCard(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
@@ -77,7 +78,7 @@ class AboutScreen extends StatelessWidget {
           // ── Tech Stack ──────────────────────────────────────────
           _SectionHeader(title: 'Tech Stack', colorScheme: colorScheme),
           const SizedBox(height: 8),
-          Card(
+          GlassCard(
             child: Column(
               children: [
                 _TechItem(
@@ -123,7 +124,7 @@ class AboutScreen extends StatelessWidget {
           // ── Features ────────────────────────────────────────────
           _SectionHeader(title: 'Features', colorScheme: colorScheme),
           const SizedBox(height: 8),
-          Card(
+          GlassCard(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -144,7 +145,7 @@ class AboutScreen extends StatelessWidget {
           // ── Links ───────────────────────────────────────────────
           _SectionHeader(title: 'Links', colorScheme: colorScheme),
           const SizedBox(height: 8),
-          Card(
+          GlassCard(
             child: Column(
               children: [
                 ListTile(
@@ -196,7 +197,7 @@ class AboutScreen extends StatelessWidget {
           // ── License ─────────────────────────────────────────────
           _SectionHeader(title: 'License', colorScheme: colorScheme),
           const SizedBox(height: 8),
-          Card(
+          GlassCard(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Text(

@@ -6,6 +6,7 @@ import '../models/provider_config.dart';
 import '../services/pin_service.dart';
 import 'add_provider_screen.dart';
 import '../services/export_service.dart';
+import '../widgets/glass_card.dart';
 import '../app_version.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -24,108 +25,75 @@ class SettingsScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         children: [
           // Appearance
-          Text(
-            'APPEARANCE',
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.primary,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.brightness_6_rounded),
-                  title: const Text('Theme'),
-                  subtitle: Text(themeMode.name),
-                  trailing: SegmentedButton<ThemeMode>(
-                    segments: const [
-                      ButtonSegment(
-                        value: ThemeMode.system,
-                        icon: Icon(Icons.phone_iphone_rounded),
-                      ),
-                      ButtonSegment(
-                        value: ThemeMode.light,
-                        icon: Icon(Icons.light_mode_rounded),
-                      ),
-                      ButtonSegment(
-                        value: ThemeMode.dark,
-                        icon: Icon(Icons.dark_mode_rounded),
-                      ),
-                    ],
-                    selected: {themeMode},
-                    onSelectionChanged: (set) {
-                      ref.read(themeModeProvider.notifier).setTheme(set.first);
-                    },
+          GlassSectionLabel('APPEARANCE'),
+          GlassCard(
+            padding: EdgeInsets.zero,
+            child: ListTile(
+              leading: const Icon(Icons.brightness_6_rounded),
+              title: const Text('Theme'),
+              subtitle: Text(themeMode.name),
+              trailing: SegmentedButton<ThemeMode>(
+                segments: const [
+                  ButtonSegment(
+                    value: ThemeMode.system,
+                    icon: Icon(Icons.phone_iphone_rounded),
                   ),
-                ),
-              ],
+                  ButtonSegment(
+                    value: ThemeMode.light,
+                    icon: Icon(Icons.light_mode_rounded),
+                  ),
+                  ButtonSegment(
+                    value: ThemeMode.dark,
+                    icon: Icon(Icons.dark_mode_rounded),
+                  ),
+                ],
+                selected: {themeMode},
+                onSelectionChanged: (set) {
+                  ref.read(themeModeProvider.notifier).setTheme(set.first);
+                },
+              ),
             ),
           ),
           const SizedBox(height: 24),
 
           // Security
-          Text(
-            'SECURITY',
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.primary,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: Icon(
-                    hasPin ? Icons.lock_rounded : Icons.lock_open_rounded,
-                    color: hasPin ? theme.colorScheme.primary : null,
-                  ),
-                  title: const Text('PIN Lock'),
-                  subtitle: Text(hasPin ? 'Enabled' : 'Not set'),
-                  trailing: hasPin
-                      ? TextButton(
-                          onPressed: () => _confirmRemovePin(context, ref),
-                          child: Text(
-                            'Remove',
-                            style: TextStyle(color: theme.colorScheme.error),
-                          ),
-                        )
-                      : FilledButton.tonal(
-                          onPressed: () => context.push('/pin-setup'),
-                          child: const Text('Set PIN'),
-                        ),
-                ),
-              ],
+          GlassSectionLabel('SECURITY'),
+          GlassCard(
+            padding: EdgeInsets.zero,
+            child: ListTile(
+              leading: Icon(
+                hasPin ? Icons.lock_rounded : Icons.lock_open_rounded,
+                color: hasPin ? theme.colorScheme.primary : null,
+              ),
+              title: const Text('PIN Lock'),
+              subtitle: Text(hasPin ? 'Enabled' : 'Not set'),
+              trailing: hasPin
+                  ? TextButton(
+                      onPressed: () => _confirmRemovePin(context, ref),
+                      child: Text(
+                        'Remove',
+                        style: TextStyle(color: theme.colorScheme.error),
+                      ),
+                    )
+                  : FilledButton.tonal(
+                      onPressed: () => context.push('/pin-setup'),
+                      child: const Text('Set PIN'),
+                    ),
             ),
           ),
           const SizedBox(height: 24),
 
           // Configured Providers
-          Text(
-            'CONFIGURED PROVIDERS',
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.primary,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1,
-            ),
-          ),
-          const SizedBox(height: 8),
+          GlassSectionLabel('CONFIGURED PROVIDERS'),
           if (providers.isEmpty)
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Center(
-                  child: Text(
-                    'No providers configured yet.\n'
-                    'Tap + on the dashboard to add one.',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
+            GlassCard(
+              child: Center(
+                child: Text(
+                  'No providers configured yet.\n'
+                  'Tap + on the dashboard to add one.',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -135,17 +103,11 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // Data
-          Text(
-            'DATA',
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.primary,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Card(
+          GlassSectionLabel('DATA'),
+          GlassCard(
+            padding: EdgeInsets.zero,
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 ListTile(
                   leading: const Icon(Icons.file_download_outlined),
@@ -168,26 +130,15 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // About
-          Text(
-            'ABOUT',
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.primary,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.info_outline_rounded),
-                  title: const Text('AI Balance Tracker'),
-                  subtitle: Text('Version $appVersion'),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => context.push('/about'),
-                ),
-              ],
+          GlassSectionLabel('ABOUT'),
+          GlassCard(
+            padding: EdgeInsets.zero,
+            child: ListTile(
+              leading: const Icon(Icons.info_outline_rounded),
+              title: const Text('AI Balance Tracker'),
+              subtitle: Text('Version $appVersion'),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => context.push('/about'),
             ),
           ),
           const SizedBox(height: 80),
@@ -333,8 +284,10 @@ class _ProviderTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
-    return Card(
+    return GlassCard(
+      padding: EdgeInsets.zero,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           SwitchListTile(
             secondary: Container(
