@@ -3,9 +3,9 @@
 > Securely monitor credits, usage, and funds across all your AI providers in a unified dashboard.
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
-[![iOS](https://img.shields.io/badge/iOS-16.0+-000000?logo=apple)](https://apple.com/ios)
+[![iOS](https://img.shields.io/badge/iOS-17.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.10.1-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+[![Version](https://img.shields.io/badge/version-1.11.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 
 ## Features
 
@@ -28,7 +28,7 @@
 - **Developer Mode** — View raw API responses + endpoint URL per provider (always visible on detail screen)
 - **Model Browser** — Browse 50+ models with pricing, context window, and capabilities across all providers
 - **Balance Not Supported Banner** — Cards clearly indicate when a provider only supports key validation
-- **iOS Home Screen Widget** *(included in source, disabled in CI builds — requires paid Apple Developer account)* — WidgetKit widget shows total balance + provider count
+- **iOS Liquid Glass Design** — Frosted translucent surfaces, BackdropFilter blur, dark/light adaptive glass throughout the app
 
 ## Supported Providers
 
@@ -104,6 +104,7 @@ lib/
 └── widgets/
     ├── splash_screen.dart       # Branded launch screen with animations
     ├── provider_card.dart       # Balance card with not-supported banner
+    ├── glass_card.dart          # Liquid glass card with BackdropFilter blur
     ├── pin_pad.dart             # Shared numeric PIN keypad (iOS style)
     └── pin_setup_dialog.dart    # Create/confirm PIN (legacy bottom sheet)
 ```
@@ -170,7 +171,7 @@ class MyProvider extends AIProvider {
 
 - Flutter 3.38+
 - Xcode 16+ (for iOS builds)
-- iOS 16.0+ deployment target
+- iOS 17.0+ deployment target
 
 ### Development
 
