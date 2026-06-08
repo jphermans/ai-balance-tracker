@@ -6,6 +6,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class SupabaseService {
   static bool _initialized = false;
 
+  /// Whether Supabase is currently initialized.
+  static bool get isInitialized => _initialized;
+
   /// Call once at app startup with your Supabase project URL and anon key.
   static Future<void> initialize({
     required String url,
@@ -19,6 +22,28 @@ class SupabaseService {
     Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       debugPrint('[Supabase] Auth event: ${data.event}');
     });
+  }
+
+  /// Re-initialize with new credentials (e.g. user changed config in Settings).
+  /// Disposes the old client and initializes a fresh one.
+  static Future<void> reinitialize({
+    required String url,
+    required String anonKey,
+  }) async {
+    await dispose();
+    await initialize(url: url, anonKey: anonKey);
+  }
+
+  /// Dispose the current Supabase client so it can be re-created.
+  static Future<void> dispose() async {
+    if (!_initialized) return;
+    try {
+      await Supabase.instance.client.auth.signOut();
+    } catch (_) {}
+    try {
+      Supabase.instance.dispose();
+    } catch (_) {}
+    _initialized = false;
   }
 
   /// The Supabase client instance. Access after [initialize].

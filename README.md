@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-17.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.13.1-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+[![Version](https://img.shields.io/badge/version-1.14.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 [![macOS](https://img.shields.io/badge/macOS-13.0+-000000?logo=apple)](https://apple.com/macos)
 
 ## Features
@@ -26,7 +26,7 @@
 - **Provider Adapters** — Clean architecture: add new providers by implementing `AIProvider`
 - **Custom App Icon** — AI-themed neural network icon with gradient purple/blue palette
 - **Unsigned IPA in CI** — Every push produces a downloadable IPA for sideloading
-- **Developer Mode** — View raw API responses + endpoint URL per provider (always visible on detail screen)
+- **Developer Mode** — View raw API responses + endpoint URL per provider (always expanded on detail screen)
 - **Model Browser** — Browse 50+ models with pricing, context window, and capabilities across all providers
 - **Cross-Device Sync (Supabase)** — Sync provider configs between iOS and macOS via Supabase realtime. Local-first — works fully offline.
 - **macOS Desktop App** — Native macOS build with resizable window (min 800×600) and custom app icon
@@ -510,6 +510,11 @@ These are passed to Flutter via `--dart-define` in both iOS and macOS workflows.
 Without them, the app builds and runs in local-only mode.
 
 ## Version History
+
+### v1.14.0
+- **In-app Supabase config** — URL + anon key text fields in Settings (no build flags needed)
+- Config persists across restarts, removable anytime
+- Live reconnection when saving new credentials
 
 ### v1.13.1
 - Raw API response section now **expanded by default** on provider detail screen

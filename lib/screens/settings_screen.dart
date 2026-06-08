@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../state/app_state.dart';
 import '../models/provider_config.dart';
 import '../services/pin_service.dart';
+import '../services/supabase_config_service.dart';
+import '../services/supabase_service.dart';
 import 'add_provider_screen.dart';
 import '../services/export_service.dart';
 import '../widgets/glass_card.dart';
@@ -81,6 +83,10 @@ class SettingsScreen extends ConsumerWidget {
                     ),
             ),
           ),
+          const SizedBox(height: 24),
+
+          // Cloud Sync
+          const _CloudSyncSection(),
           const SizedBox(height: 24),
 
           // Configured Providers
@@ -272,6 +278,300 @@ class SettingsScreen extends ConsumerWidget {
           );
         },
       ),
+    );
+  }
+}
+
+/// Supabase cloud sync configuration section with URL + anon key fields.
+class _CloudSyncSection extends StatefulWidget {
+  const _CloudSyncSection();
+
+  @override
+  State<_CloudSyncSection> createState() => _CloudSyncSectionState();
+}
+
+class _CloudSyncSectionState extends State<_CloudSyncSection> {
+  final _urlController = TextEditingController();
+  final _keyController = TextEditingController();
+  bool _showKey = false;
+  bool _saving = false;
+  bool _clearing = false;
+  String? _statusText;
+  bool _connected = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadExisting();
+  }
+
+  Future<void> _loadExisting() async {
+    final (url, key) = await SupabaseConfigService.loadConfig();
+    if (url != null && mounted) {
+      _urlController.text = url;
+      _keyController.text = key ?? '';
+      setState(() {
+        _connected = SupabaseService.isInitialized;
+        _statusText = _connected ? 'Connected' : 'Saved (restart app)';
+      });
+    } else {
+      setState(() {
+        _statusText = 'Not configured';
+      });
+    }
+  }
+
+  Future<void> _save() async {
+    final url = _urlController.text.trim();
+    final key = _keyController.text.trim();
+
+    if (url.isEmpty || key.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Both URL and Anon Key are required'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _saving = true);
+    try {
+      await SupabaseConfigService.saveConfig(url: url, anonKey: key);
+
+      // Try live re-init
+      try {
+        await SupabaseService.reinitialize(url: url, anonKey: key);
+        await SupabaseService.signInAnonymously();
+        setState(() {
+          _connected = true;
+          _statusText = 'Connected';
+        });
+      } catch (_) {
+        setState(() {
+          _connected = false;
+          _statusText = 'Saved — reconnect on next launch';
+        });
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Supabase config saved'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Save failed: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _clear() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Remove Supabase Config?'),
+        content: const Text(
+          'This will disconnect cloud sync. Your provider data stays on this device.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _clearing = true);
+    try {
+      await SupabaseConfigService.clearConfig();
+      await SupabaseService.dispose();
+      _urlController.clear();
+      _keyController.clear();
+      setState(() {
+        _connected = false;
+        _statusText = 'Not configured';
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Supabase config removed'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _clearing = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _urlController.dispose();
+    _keyController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final hasConfig = _urlController.text.isNotEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GlassSectionLabel('CLOUD SYNC'),
+        GlassCard(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Connection status
+              Row(
+                children: [
+                  Icon(
+                    _connected ? Icons.cloud_done_rounded : Icons.cloud_off_rounded,
+                    size: 18,
+                    color: _connected ? Colors.green : colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Supabase',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (_statusText != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: _connected
+                            ? Colors.green.withValues(alpha: 0.1)
+                            : colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        _statusText!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: _connected
+                              ? Colors.green
+                              : colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // URL field
+              TextField(
+                controller: _urlController,
+                decoration: InputDecoration(
+                  labelText: 'Project URL',
+                  hintText: 'https://xxxxxxxxxxxx.supabase.co',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  isDense: true,
+                  prefixIcon: const Icon(Icons.link_rounded, size: 20),
+                ),
+                keyboardType: TextInputType.url,
+                autocorrect: false,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontFamily: 'monospace',
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Anon key field
+              TextField(
+                controller: _keyController,
+                obscureText: !_showKey,
+                decoration: InputDecoration(
+                  labelText: 'Anon Key',
+                  hintText: 'eyJhbGciOi...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  isDense: true,
+                  prefixIcon: const Icon(Icons.vpn_key_rounded, size: 20),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _showKey ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                      size: 20,
+                    ),
+                    onPressed: () => setState(() => _showKey = !_showKey),
+                  ),
+                ),
+                autocorrect: false,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontFamily: 'monospace',
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Action buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: _saving ? null : _save,
+                      icon: _saving
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.save_rounded, size: 18),
+                      label: Text(_saving ? 'Saving…' : 'Save'),
+                    ),
+                  ),
+                  if (hasConfig) ...[
+                    const SizedBox(width: 8),
+                    OutlinedButton.icon(
+                      onPressed: _clearing ? null : _clear,
+                      icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                      label: const Text('Remove'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: colorScheme.error,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
