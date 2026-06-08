@@ -36,5 +36,8 @@ class MainFlutterWindow: NSWindow {
     RegisterGeneratedPlugins(registry: flutterViewController)
     
     super.awakeFromNib()
+    
+    // Ensure window is visible and focused
+    self.makeKeyAndOrderFront(nil)
   }
 }
