@@ -28,7 +28,7 @@
 - **Unsigned IPA in CI** — Every push produces a downloadable IPA for sideloading
 - **Developer Mode** — View raw API responses + endpoint URL per provider (always expanded on detail screen)
 - **Model Browser** — Browse 50+ models with pricing, context window, and capabilities across all providers
-- **Cross-Device Sync (Supabase)** — Sync provider configs between iOS and macOS via Supabase realtime. Local-first — works fully offline.
+- **Cross-Device Sync (Supabase)** — Sync provider configs between iOS and macOS via Supabase realtime. Configure in Settings — no build flags needed.
 - **macOS Desktop App** — Native macOS build with resizable window (min 800×600) and custom app icon
 - **Balance Not Supported Banner** — Cards clearly indicate when a provider only supports key validation
 - **iOS Liquid Glass Design** — Frosted translucent surfaces, BackdropFilter blur, dark/light adaptive glass throughout the app
@@ -205,7 +205,8 @@ flutter run -d <id>  # connected iPhone
 
 ### Supabase Cloud Sync (optional)
 
-Provider configurations can sync across iOS and macOS devices via Supabase.
+Sync provider configs across iOS and macOS devices via Supabase realtime.
+**v1.14+**: configure directly in the app (Settings → Cloud Sync) — no build flags needed.
 The app works fully offline without Supabase — cloud sync is opt-in.
 
 **1. Create a free Supabase project**
@@ -247,16 +248,20 @@ CREATE POLICY "Users manage own configs" ON provider_configs
   WITH CHECK (auth.uid() = user_id);
 ```
 
-**4. Pass credentials at build time**
+**4. Configure in the app**
 
-```bash
-flutter run -d macos \
-  --dart-define=SUPABASE_URL=https://your-project.supabase.co \
-  --dart-define=SUPABASE_ANON_KEY=your-anon-key
-```
+Open the app → Settings → **Cloud Sync** → paste your Project URL and Anon Key → tap **Save**.
 
-For Xcode builds, add these to your scheme's environment variables.
-CI builds pass them via GitHub Actions secrets.
+That's it. The app connects live and syncs your provider configs across devices.
+No build flags, no `--dart-define`, no GitHub Secrets needed.
+
+To disconnect, tap **Remove** in the Cloud Sync section. Your provider data
+stays on the device — only the sync link is removed.
+
+> **For CI builds only:** if you want the unsigned IPA or macOS .app to ship
+> with cloud sync pre-configured, set `SUPABASE_URL` and `SUPABASE_ANON_KEY`
+> as GitHub Actions secrets. They're passed via `--dart-define` at build time.
+> Without them, CI builds run in local-only mode (users configure in-app).
 
 ### Firebase Cloud Sync (alternative)
 
@@ -500,14 +505,16 @@ The `.github/workflows/build-macos.yml` workflow:
 | **macOS (ARM64)** | Every push to `main` | `ai-balance-tracker-macos.zip` |
 | **GitHub Release** | Tag push (`v*`) | macOS zip attached |
 
-### Supabase credentials in CI
+### Supabase credentials in CI (optional)
 
-To enable cloud sync in CI builds, add these GitHub Actions secrets:
+CI builds run in local-only mode by default — users configure cloud sync in-app.
+To pre-configure a CI build with Supabase, add these GitHub Actions secrets:
+
 - `SUPABASE_URL` — Your Supabase project URL
 - `SUPABASE_ANON_KEY` — Your Supabase anon/public key
 
-These are passed to Flutter via `--dart-define` in both iOS and macOS workflows.
-Without them, the app builds and runs in local-only mode.
+These are baked into the app at build time via `--dart-define`.
+End users can still override them from Settings → Cloud Sync.
 
 ## Version History
 
