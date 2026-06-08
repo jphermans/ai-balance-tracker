@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -5,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// Call [initialize] once at app startup, then use [client].
 class SupabaseService {
   static bool _initialized = false;
+  static StreamSubscription? _authSub;
 
   /// Whether Supabase is currently initialized.
   static bool get isInitialized => _initialized;
@@ -19,7 +21,8 @@ class SupabaseService {
     _initialized = true;
 
     // Log auth state changes for debugging
-    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+    _authSub?.cancel();
+    _authSub = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       debugPrint('[Supabase] Auth event: ${data.event}');
     });
   }
@@ -36,6 +39,8 @@ class SupabaseService {
 
   /// Dispose the current Supabase client so it can be re-created.
   static Future<void> dispose() async {
+    _authSub?.cancel();
+    _authSub = null;
     if (!_initialized) return;
     try {
       await Supabase.instance.client.auth.signOut();
