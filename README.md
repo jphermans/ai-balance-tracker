@@ -5,7 +5,8 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-17.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.11.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+[![Version](https://img.shields.io/badge/version-1.12.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+[![macOS](https://img.shields.io/badge/macOS-13.0+-000000?logo=apple)](https://apple.com/macos)
 
 ## Features
 
@@ -29,6 +30,7 @@
 - **Model Browser** — Browse 50+ models with pricing, context window, and capabilities across all providers
 - **Balance Not Supported Banner** — Cards clearly indicate when a provider only supports key validation
 - **iOS Liquid Glass Design** — Frosted translucent surfaces, BackdropFilter blur, dark/light adaptive glass throughout the app
+- **macOS Desktop App** — Native macOS build with fixed 800×600 window, separate Intel and Apple Silicon downloads
 
 ## Supported Providers
 
@@ -124,6 +126,20 @@ ios/BalanceWidget/
 
 > ⚠️ **Widget requires a paid Apple Developer account.** Free provisioning profiles don't support app extensions. The IPA built by CI does NOT include the widget. To enable it locally: add the `BalanceWidgetExtension` target to the Xcode scheme via `ios/add_widget_target.py`.
 
+### macOS (native desktop)
+
+```
+macos/
+├── Runner/
+│   ├── MainFlutterWindow.swift    # Fixed 800×600 non-resizable window
+│   ├── AppDelegate.swift          # macOS app delegate
+│   ├── Info.plist                 # App metadata
+│   └── Configs/                   # Build configs (Debug, Release)
+└── Runner.xcodeproj/              # Xcode project
+```
+
+**Window:** 800×600 fixed size, centered on screen, no resize, vertical scroll only.
+
 ## Screens
 
 | Screen | Route | Description |
@@ -172,6 +188,7 @@ class MyProvider extends AIProvider {
 - Flutter 3.38+
 - Xcode 16+ (for iOS builds)
 - iOS 17.0+ deployment target
+- macOS 13.0+ (for desktop builds)
 
 ### Development
 
@@ -180,7 +197,39 @@ git clone https://github.com/jphermans/ai-balance-tracker.git
 cd ai-balance-tracker
 flutter pub get
 flutter run          # iOS simulator
+flutter run -d macos # macOS desktop
 flutter run -d <id>  # connected iPhone
+```
+
+## macOS Desktop Build
+
+The CI builds separate Intel (x86_64) and Apple Silicon (arm64) .app bundles.
+
+### Download
+
+Go to [Actions → Build macOS App](https://github.com/jphermans/ai-balance-tracker/actions/workflows/build-macos.yml) → click the latest run → download the artifact for your chipset.
+
+Or grab the latest from [Releases](https://github.com/jphermans/ai-balance-tracker/releases) (tagged builds only):
+
+- `ai-balance-tracker-macos-arm64.zip` — Apple Silicon (M1/M2/M3/M4)
+- `ai-balance-tracker-macos-intel.zip` — Intel Macs
+
+### Install
+
+```bash
+# Unzip and drag to /Applications
+unzip ai-balance-tracker-macos-arm64.zip
+mv "AI Balance Tracker.app" /Applications/
+
+# If macOS blocks it (unidentified developer):
+xattr -cr "/Applications/AI Balance Tracker.app"
+```
+
+### Local build
+
+```bash
+flutter build macos --release
+open build/macos/Build/Products/Release/
 ```
 
 ## Building & Sideloading the IPA
@@ -311,7 +360,15 @@ The `.github/workflows/build-ipa.yml` workflow:
 |-----|---------|--------|
 | **Unsigned IPA** | Every push to `main` | `ai-balance-tracker-unsigned.ipa` artifact |
 | **Signed IPA** | Push to `main` (requires Apple secrets) | Signed ad-hoc IPA artifact |
-| **GitHub Release** | Tag push (`v*`) | Both IPAs attached to release |
+| **GitHub Release** | Tag push (`v*`) | Both IPAs + macOS builds attached to release |
+
+The `.github/workflows/build-macos.yml` workflow:
+
+| Job | Trigger | Output |
+|-----|---------|--------|
+| **macOS Intel** | Every push to `main` | `ai-balance-tracker-macos-intel.zip` |
+| **macOS ARM64** | Every push to `main` | `ai-balance-tracker-macos-arm64.zip` |
+| **GitHub Release** | Tag push (`v*`) | Both macOS zips attached |
 
 ## License
 
