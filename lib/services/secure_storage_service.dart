@@ -1,27 +1,75 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/provider_config.dart';
 
-/// Secure storage backed by iOS Keychain / Android EncryptedSharedPreferences.
-/// Never stores credentials in plain text or SharedPreferences.
+/// Secure/durable storage for provider configs and credentials.
+/// Uses iOS Keychain on iOS, SharedPreferences on macOS/other platforms
+/// (because Keychain blocks unsigned macOS apps).
 class SecureStorageService {
-  static const _storage = FlutterSecureStorage();
   static const _providersKey = 'ai_balance_providers';
+  static final _secure = FlutterSecureStorage();
+
+  static bool get _useSecure =>
+      Platform.isIOS || Platform.isAndroid;
 
   static Future<void> initialize() async {
-    // Trigger keychain access early; no-op if already initialized
-    await _storage.read(key: '_init_check');
+    if (_useSecure) {
+      await _secure.read(key: '_init_check');
+    }
   }
 
-  /// Save all provider configurations securely.
+  static Future<SharedPreferences> get _prefs =>
+      SharedPreferences.getInstance();
+
+  // --- Read/Write abstraction ---
+
+  static Future<void> _write(String key, String value) async {
+    if (_useSecure) {
+      await _secure.write(key: key, value: value);
+    } else {
+      final p = await _prefs;
+      await p.setString(key, value);
+    }
+  }
+
+  static Future<String?> _read(String key) async {
+    if (_useSecure) {
+      return await _secure.read(key: key);
+    } else {
+      final p = await _prefs;
+      return p.getString(key);
+    }
+  }
+
+  static Future<void> _delete(String key) async {
+    if (_useSecure) {
+      await _secure.delete(key: key);
+    } else {
+      final p = await _prefs;
+      await p.remove(key);
+    }
+  }
+
+  static Future<void> deleteAll() async {
+    if (_useSecure) {
+      await _secure.deleteAll();
+    } else {
+      final p = await _prefs;
+      await p.remove(_providersKey);
+    }
+  }
+
+  // --- Public API ---
+
   static Future<void> saveProviders(List<ProviderConfig> providers) async {
     final json = providers.map((p) => p.toJson()).toList();
-    await _storage.write(key: _providersKey, value: jsonEncode(json));
+    await _write(_providersKey, jsonEncode(json));
   }
 
-  /// Load all provider configurations.
   static Future<List<ProviderConfig>> loadProviders() async {
-    final json = await _storage.read(key: _providersKey);
+    final json = await _read(_providersKey);
     if (json == null) return [];
     final list = jsonDecode(json) as List<dynamic>;
     return list
@@ -29,7 +77,6 @@ class SecureStorageService {
         .toList();
   }
 
-  /// Save a single provider config.
   static Future<void> saveProvider(ProviderConfig config) async {
     final providers = await loadProviders();
     final index = providers.indexWhere((p) => p.id == config.id);
@@ -41,15 +88,9 @@ class SecureStorageService {
     await saveProviders(providers);
   }
 
-  /// Remove a provider config.
   static Future<void> removeProvider(String providerId) async {
     final providers = await loadProviders();
     providers.removeWhere((p) => p.id == providerId);
     await saveProviders(providers);
-  }
-
-  /// Delete all stored credentials.
-  static Future<void> deleteAll() async {
-    await _storage.deleteAll();
   }
 }
