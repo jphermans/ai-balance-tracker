@@ -63,9 +63,9 @@ class AboutScreen extends StatelessWidget {
               child: Text(
                 'AI Balance Tracker securely monitors credits, usage, and '
                 'funds across all your AI providers in a unified dashboard. '
-                'Keep track of 19+ API providers with real-time balance '
-                'queries, optional PIN protection, and keychain-secured '
-                'credentials.',
+                'Keep track of 22+ API providers with real-time balance '
+                'queries, cloud sync via Supabase, optional PIN protection, '
+                'and keychain-secured credentials.',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurface,
                   height: 1.5,
@@ -100,21 +100,51 @@ class AboutScreen extends StatelessWidget {
                 ),
                 _Divider(),
                 _TechItem(
+                  icon: Icons.cloud_sync_rounded,
+                  label: 'Cloud Sync',
+                  value: 'Supabase (PostgreSQL + Realtime)',
+                ),
+                _Divider(),
+                _TechItem(
                   icon: Icons.security_rounded,
                   label: 'Credential Storage',
                   value: 'iOS Keychain (flutter_secure_storage)',
                 ),
                 _Divider(),
                 _TechItem(
-                  icon: Icons.design_services_rounded,
-                  label: 'Design System',
-                  value: 'Material 3 (iOS-inspired theme)',
+                  icon: Icons.storage_rounded,
+                  label: 'Local Storage',
+                  value: 'SharedPreferences',
+                ),
+                _Divider(),
+                _TechItem(
+                  icon: Icons.http_rounded,
+                  label: 'API Client',
+                  value: 'HTTP (dart:http)',
+                ),
+                _Divider(),
+                _TechItem(
+                  icon: Icons.wifi_off_rounded,
+                  label: 'Offline Detection',
+                  value: 'connectivity_plus',
                 ),
                 _Divider(),
                 _TechItem(
                   icon: Icons.bar_chart_rounded,
                   label: 'Charts',
                   value: 'fl_chart',
+                ),
+                _Divider(),
+                _TechItem(
+                  icon: Icons.share_rounded,
+                  label: 'Export',
+                  value: 'CSV + share_plus',
+                ),
+                _Divider(),
+                _TechItem(
+                  icon: Icons.design_services_rounded,
+                  label: 'Design System',
+                  value: 'Material 3 (liquid glass)',
                 ),
               ],
             ),
@@ -129,13 +159,14 @@ class AboutScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  _FeatureBullet(theme, 'Unified dashboard for 19+ AI providers'),
-                  _FeatureBullet(theme, 'Real-time balance queries for 7 providers'),
+                  _FeatureBullet(theme, '22+ AI providers — 10 with full balance tracking'),
+                  _FeatureBullet(theme, 'Cross-device sync via Supabase (iOS ↔ macOS)'),
+                  _FeatureBullet(theme, 'Native macOS desktop app with custom icon'),
                   _FeatureBullet(theme, 'Optional 4-digit PIN lock'),
                   _FeatureBullet(theme, 'iOS Keychain-backed secure storage'),
-                  _FeatureBullet(theme, 'Dark/light/system theme support'),
-                  _FeatureBullet(theme, 'Custom app icon and splash screen'),
-                  _FeatureBullet(theme, 'Unsigned IPA builder via GitHub Actions'),
+                  _FeatureBullet(theme, 'Dark/light/system theme (liquid glass design)'),
+                  _FeatureBullet(theme, 'Spending history chart (7/30/90 day)'),
+                  _FeatureBullet(theme, 'Unsigned IPA + macOS builds via GitHub Actions'),
                 ],
               ),
             ),

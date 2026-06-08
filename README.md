@@ -183,6 +183,23 @@ class MyProvider extends AIProvider {
 }
 ```
 
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Flutter 3.38+ (Dart) |
+| State | Riverpod |
+| Navigation | GoRouter |
+| Cloud Sync | Supabase (PostgreSQL + Realtime) |
+| Credential Storage | flutter_secure_storage (iOS Keychain) |
+| Local Storage | SharedPreferences |
+| HTTP Client | dart:http |
+| Offline Detection | connectivity_plus |
+| Charts | fl_chart |
+| Export | CSV + share_plus |
+| CI/CD | GitHub Actions (unsigned IPA + macOS .app) |
+| Design | Material 3 liquid glass (BackdropFilter blur) |
+
 ## Getting Started
 
 ### Prerequisites
