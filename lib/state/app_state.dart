@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../models/balance_info.dart';
 import '../models/provider_config.dart';
-import '../services/secure_storage_service.dart';
+import '../services/hybrid_storage_service.dart';
 import '../services/balance_service.dart';
 import '../services/history_service.dart';
 import '../services/pin_service.dart';
@@ -16,36 +16,36 @@ class ProvidersNotifier extends StateNotifier<List<ProviderConfig>> {
   }
 
   Future<void> _load() async {
-    state = await SecureStorageService.loadProviders();
+    state = await HybridStorageService.loadProviders();
   }
 
   Future<void> addProvider(ProviderConfig config) async {
-    await SecureStorageService.saveProvider(config);
-    state = await SecureStorageService.loadProviders();
+    await HybridStorageService.saveProvider(config);
+    state = await HybridStorageService.loadProviders();
   }
 
   Future<void> updateProvider(ProviderConfig config) async {
-    await SecureStorageService.saveProvider(config);
-    state = await SecureStorageService.loadProviders();
+    await HybridStorageService.saveProvider(config);
+    state = await HybridStorageService.loadProviders();
   }
 
   Future<void> removeProvider(String id) async {
-    await SecureStorageService.removeProvider(id);
-    state = await SecureStorageService.loadProviders();
+    await HybridStorageService.removeProvider(id);
+    state = await HybridStorageService.loadProviders();
   }
 
   Future<void> toggleProvider(String id, bool enabled) async {
-    final providers = await SecureStorageService.loadProviders();
+    final providers = await HybridStorageService.loadProviders();
     final index = providers.indexWhere((p) => p.id == id);
     if (index >= 0) {
       providers[index] = providers[index].copyWith(enabled: enabled);
-      await SecureStorageService.saveProviders(providers);
+      await HybridStorageService.saveProviders(providers);
       state = providers;
     }
   }
 
   Future<void> clearAll() async {
-    await SecureStorageService.deleteAll();
+    await HybridStorageService.deleteAll();
     state = [];
   }
 }

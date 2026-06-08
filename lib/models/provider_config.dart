@@ -6,6 +6,7 @@ class ProviderConfig {
   final String? accountId;
   final String? customEndpoint;
   final bool enabled;
+  final DateTime? updatedAt; // Cloud sync timestamp; null = local-only
 
   const ProviderConfig({
     required this.id,
@@ -15,6 +16,7 @@ class ProviderConfig {
     this.accountId,
     this.customEndpoint,
     this.enabled = true,
+    this.updatedAt,
   });
 
   factory ProviderConfig.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,9 @@ class ProviderConfig {
       accountId: json['accountId'] as String?,
       customEndpoint: json['customEndpoint'] as String?,
       enabled: json['enabled'] as bool? ?? true,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'] as String)
+          : null,
     );
   }
 
@@ -40,6 +45,7 @@ class ProviderConfig {
         if (accountId != null) 'accountId': accountId,
         if (customEndpoint != null) 'customEndpoint': customEndpoint,
         'enabled': enabled,
+        if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
       };
 
   ProviderConfig copyWith({
@@ -48,6 +54,7 @@ class ProviderConfig {
     String? accountId,
     String? customEndpoint,
     bool? enabled,
+    DateTime? updatedAt,
   }) {
     return ProviderConfig(
       id: id,
@@ -57,6 +64,7 @@ class ProviderConfig {
       accountId: accountId ?? this.accountId,
       customEndpoint: customEndpoint ?? this.customEndpoint,
       enabled: enabled ?? this.enabled,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

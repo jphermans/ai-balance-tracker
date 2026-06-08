@@ -1,0 +1,124 @@
+import 'dart:async';
+import 'secure_storage_service.dart';
+import 'sync_service.dart';
+import 'supabase_service.dart';
+import '../models/provider_config.dart';
+
+/// Local-first hybrid storage: writes go to local storage immediately,
+/// then sync to Supabase in background. On startup, merges local + cloud
+/// with last-write-wins conflict resolution.
+class HybridStorageService {
+  static StreamSubscription? _realtimeSub;
+
+  /// Initialize: sign in, load local, merge with cloud, start realtime.
+  /// Returns the merged provider list.
+  static Future<List<ProviderConfig>> initialize() async {
+    // 1. Ensure signed in anonymously
+    await SupabaseService.signInAnonymously();
+
+    // 2. Load local data (always works, even offline)
+    final localProviders = await SecureStorageService.loadProviders();
+
+    // 3. Try loading cloud data and merge
+    try {
+      final cloudProviders = await SyncService.fetchAll();
+      final merged = _merge(localProviders, cloudProviders);
+
+      // 4. Save merged result locally
+      await SecureStorageService.saveProviders(merged);
+
+      // 5. Push any local-only or newer-local providers to cloud
+      for (final p in merged) {
+        await SyncService.upsert(p);
+      }
+
+      return merged;
+    } catch (_) {
+      // Cloud unavailable — app works fine with local-only data
+      return localProviders;
+    }
+  }
+
+  /// Load providers from local storage (fast, no network).
+  static Future<List<ProviderConfig>> loadProviders() async {
+    return await SecureStorageService.loadProviders();
+  }
+
+  /// Save a provider: write local first, sync to cloud in background.
+  static Future<void> saveProvider(ProviderConfig config) async {
+    final updated = config.copyWith(updatedAt: DateTime.now().toUtc());
+    await SecureStorageService.saveProvider(updated);
+    // Fire-and-forget cloud sync
+    SyncService.upsert(updated).catchError((_) {});
+  }
+
+  /// Remove a provider: delete from local, then cloud.
+  static Future<void> removeProvider(String providerId) async {
+    await SecureStorageService.removeProvider(providerId);
+    SyncService.remove(providerId).catchError((_) {});
+  }
+
+  /// Delete all providers from local storage.
+  static Future<void> deleteAll() async {
+    await SecureStorageService.deleteAll();
+  }
+
+  /// Batch save all providers to local + cloud.
+  static Future<void> saveProviders(List<ProviderConfig> providers) async {
+    await SecureStorageService.saveProviders(providers);
+    // Sync to cloud in background
+    for (final p in providers) {
+      SyncService.upsert(p).catchError((_) {});
+    }
+  }
+
+  /// Start listening for realtime cloud changes and applying them locally.
+  static void startRealtimeSync(
+    void Function(List<ProviderConfig>) onProvidersChanged,
+  ) {
+    _realtimeSub?.cancel();
+    _realtimeSub = SyncService.watchChanges().listen(
+      (cloudProviders) async {
+        if (cloudProviders.isEmpty) return;
+        final local = await SecureStorageService.loadProviders();
+        final merged = _merge(local, cloudProviders, cloudWins: true);
+        await SecureStorageService.saveProviders(merged);
+        onProvidersChanged(merged);
+      },
+      onError: (_) {/* realtime unavailable — local still works */},
+    );
+  }
+
+  /// Stop realtime subscription.
+  static void dispose() => _realtimeSub?.cancel();
+
+  /// Merge local and cloud provider lists.
+  /// [cloudWins]: when true, cloud always wins conflicts (used for
+  /// realtime pushes from other devices). When false, last-write-wins
+  /// by comparing [updatedAt] timestamps (used for startup merge).
+  static List<ProviderConfig> _merge(
+    List<ProviderConfig> local,
+    List<ProviderConfig> cloud, {
+    bool cloudWins = false,
+  }) {
+    final map = <String, ProviderConfig>{};
+    for (final p in local) {
+      map[p.id] = p;
+    }
+    for (final c in cloud) {
+      final existing = map[c.id];
+      if (existing == null) {
+        map[c.id] = c;
+      } else if (cloudWins) {
+        map[c.id] = c;
+      } else {
+        final localTime = existing.updatedAt ?? DateTime(2000);
+        final cloudTime = c.updatedAt ?? DateTime(2000);
+        if (cloudTime.isAfter(localTime)) {
+          map[c.id] = c;
+        }
+      }
+    }
+    return map.values.toList();
+  }
+}
