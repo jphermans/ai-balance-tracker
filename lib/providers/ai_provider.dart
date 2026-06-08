@@ -1,5 +1,6 @@
 import '../models/balance_info.dart';
 import '../models/usage_info.dart';
+import '../models/model_info.dart';
 import '../models/provider_config.dart';
 
 /// Abstract base for all AI provider adapters.
@@ -18,6 +19,10 @@ abstract class AIProvider {
 
   /// Fetch usage statistics from the provider's API.
   Future<UsageInfo> getUsage();
+
+  /// Fetch available models from the provider's API.
+  /// Returns an empty list by default; override for providers that support it.
+  Future<List<ModelInfo>> fetchModels() async => [];
 
   /// Build authorization headers for API requests.
   Map<String, String> get headers;

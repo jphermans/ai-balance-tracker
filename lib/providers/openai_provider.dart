@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'ai_provider.dart';
 import '../models/balance_info.dart';
 import '../models/usage_info.dart';
+import '../models/model_info.dart';
 
 class OpenAIProvider extends AIProvider {
   OpenAIProvider(super.config);
@@ -13,6 +14,27 @@ class OpenAIProvider extends AIProvider {
         'Content-Type': 'application/json',
         if (config.orgId != null) 'OpenAI-Organization': config.orgId!,
       };
+
+  @override
+  Future<List<ModelInfo>> fetchModels() async {
+    try {
+      final resp = await http.get(
+        Uri.parse('$baseUrl/v1/models'),
+        headers: headers,
+      );
+      if (resp.statusCode == 200) {
+        final raw = jsonDecode(resp.body);
+        final list = (raw['data'] as List<dynamic>?) ?? [];
+        return list.map<ModelInfo>((m) => ModelInfo(
+          id: (m['id'] as String?) ?? '',
+          displayName: (m['id'] as String?) ?? '',
+        )).toList();
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
 
   @override
   Future<BalanceInfo> getBalance() async {

@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-16.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.7.3-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+[![Version](https://img.shields.io/badge/version-1.8.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 
 ## Features
 
@@ -26,6 +26,7 @@
 - **Custom App Icon** — AI-themed neural network icon with gradient purple/blue palette
 - **Unsigned IPA in CI** — Every push produces a downloadable IPA for sideloading
 - **Developer Mode** — View raw API responses + endpoint URL per provider (always visible on detail screen)
+- **Model Browser** — Browse available models per provider with pricing, context window, and capabilities
 - **Balance Not Supported Banner** — Cards clearly indicate when a provider only supports key validation
 
 ## Supported Providers
@@ -63,7 +64,7 @@ lib/
 ├── app.dart                     # MaterialApp + PIN unlock check + routing
 ├── screens/
 │   ├── dashboard_screen.dart    # Provider cards, search, pull-to-refresh
-│   ├── provider_detail_screen.dart  # Stats, raw API response
+│   ├── provider_detail_screen.dart  # Stats, usage chart, raw API, model browser
 │   ├── settings_screen.dart     # Theme, PIN lock, provider management
 │   ├── add_provider_screen.dart # Searchable provider list + API key entry
 │   ├── pin_unlock_screen.dart   # Full-screen PIN entry with shake animation
@@ -73,6 +74,7 @@ lib/
 │   ├── balance_info.dart        # Balance data model (supportsBalance flag)
 │   ├── balance_snapshot.dart     # Timestamped balance for spending history
 │   ├── usage_info.dart          # Usage statistics model
+│   ├── model_info.dart          # Model metadata (pricing, context, capabilities)
 │   └── provider_config.dart     # Provider configuration + 19 provider types
 ├── providers/
 │   ├── ai_provider.dart         # Abstract base class
@@ -107,7 +109,7 @@ lib/
 | Screen | Route | Description |
 |--------|-------|-------------|
 | Dashboard | `/` | Provider cards, search, pull-to-refresh balances |
-| Provider Detail | `/provider/:id` | Stats, usage chart, raw API response |
+| Provider Detail | `/provider/:id` | Stats, usage chart, raw API, model browser |
 | Add Provider | `/add-provider` | Searchable provider list + API key entry |
 | Settings | `/settings` | Theme, PIN lock, provider list, data management |
 | PIN Setup | `/pin-setup` | Full-screen 4-digit PIN creation with confirmation |

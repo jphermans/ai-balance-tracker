@@ -9,6 +9,8 @@ import '../models/balance_snapshot.dart';
 import '../services/balance_service.dart';
 import '../services/history_service.dart';
 import '../models/provider_config.dart' show ProviderType;
+import '../models/model_info.dart';
+import '../providers/provider_registry.dart';
 
 class ProviderDetailScreen extends ConsumerStatefulWidget {
   final String providerId;
@@ -26,6 +28,9 @@ class _ProviderDetailScreenState extends ConsumerState<ProviderDetailScreen> {
   List<BalanceSnapshot> _snapshots = [];
   bool _loadingSnapshots = false;
   int _chartDays = 7;
+  List<ModelInfo> _models = [];
+  bool _loadingModels = false;
+  bool _modelsLoaded = false;
 
   @override
   void initState() {
@@ -59,6 +64,45 @@ class _ProviderDetailScreenState extends ConsumerState<ProviderDetailScreen> {
     } finally {
       setState(() => _loadingSnapshots = false);
     }
+  }
+
+  Future<void> _loadModels() async {
+    if (_loadingModels) return;
+    setState(() => _loadingModels = true);
+    try {
+      final configs = ref.read(providersProvider);
+      final config = configs.where((c) => c.id == widget.providerId).firstOrNull;
+      if (config != null) {
+        final provider = ProviderRegistry.create(config);
+        final models = await provider.fetchModels();
+        setState(() {
+          _models = models;
+          _modelsLoaded = true;
+        });
+      }
+    } finally {
+      setState(() => _loadingModels = false);
+    }
+  }
+
+  void _showModelsSheet() {
+    if (!_modelsLoaded) {
+      _loadModels();
+      return;
+    }
+    if (_models.isEmpty) return;
+
+    final info = ref.read(balancesProvider)[widget.providerId];
+    final name = info?.providerName ?? '';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => _ModelsSheet(models: _models, providerName: name),
+    );
   }
 
   List<BalanceSnapshot> get _filteredSnapshots {
@@ -175,6 +219,55 @@ class _ProviderDetailScreenState extends ConsumerState<ProviderDetailScreen> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 24),
+            // Available models
+            Card(
+              child: InkWell(
+                onTap: _showModelsSheet,
+                borderRadius: BorderRadius.circular(16),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(Icons.model_training_rounded,
+                          color: colorScheme.primary),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Available Models',
+                              style: theme.textTheme.titleSmall,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              _loadingModels
+                                  ? 'Loading…'
+                                  : _modelsLoaded
+                                      ? '${_models.length} models • Tap to browse'
+                                      : 'Tap to load models',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (_loadingModels)
+                        const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      else
+                        Icon(Icons.chevron_right_rounded,
+                            color: colorScheme.onSurfaceVariant),
+                    ],
+                  ),
+                ),
+              ),
             ),
             const SizedBox(height: 24),
             // Balance history chart
@@ -299,6 +392,169 @@ class _ProviderDetailScreenState extends ConsumerState<ProviderDetailScreen> {
       default:
         return '/v1/models';
     }
+  }
+}
+
+/// Bottom sheet showing a provider's available models.
+class _ModelsSheet extends StatelessWidget {
+  final List<ModelInfo> models;
+  final String providerName;
+
+  const _ModelsSheet({required this.models, required this.providerName});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.3,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (ctx, scrollController) => Column(
+        children: [
+          // Handle bar
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 12),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Icon(Icons.model_training_rounded, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '$providerName Models',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Text(
+                  '${models.length} models',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 24),
+          Expanded(
+            child: ListView.builder(
+              controller: scrollController,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: models.length,
+              itemBuilder: (ctx, i) => _ModelTile(model: models[i]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ModelTile extends StatelessWidget {
+  final ModelInfo model;
+
+  const _ModelTile({required this.model});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final hasPricing =
+        model.inputPricePer1M != null || model.outputPricePer1M != null;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    model.displayName,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                if (model.capabilities != null)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: colorScheme.secondaryContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      model.capabilities!,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: colorScheme.onSecondaryContainer,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                if (hasPricing) ...[
+                  Icon(Icons.attach_money_rounded,
+                      size: 14, color: colorScheme.primary),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      model.priceDisplay,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+                if (model.contextWindow != null) ...[
+                  if (hasPricing) const SizedBox(width: 12),
+                  Icon(Icons.aspect_ratio_rounded,
+                      size: 14, color: colorScheme.onSurfaceVariant),
+                  const SizedBox(width: 4),
+                  Text(
+                    model.contextDisplay,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            if (model.id != model.displayName) ...[
+              const SizedBox(height: 4),
+              Text(
+                model.id,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontFamily: 'monospace',
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 }
 

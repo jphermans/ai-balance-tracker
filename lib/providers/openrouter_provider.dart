@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'ai_provider.dart';
 import '../models/balance_info.dart';
 import '../models/usage_info.dart';
+import '../models/model_info.dart';
 
 class OpenRouterProvider extends AIProvider {
   OpenRouterProvider(super.config);
@@ -12,6 +13,42 @@ class OpenRouterProvider extends AIProvider {
         'Authorization': 'Bearer ${config.apiKey}',
         'Content-Type': 'application/json',
       };
+
+  @override
+  Future<List<ModelInfo>> fetchModels() async {
+    try {
+      final resp = await http.get(
+        Uri.parse('$baseUrl/v1/models'),
+        headers: headers,
+      );
+      if (resp.statusCode == 200) {
+        final raw = jsonDecode(resp.body);
+        final list = (raw['data'] as List<dynamic>?) ?? [];
+        return list.map<ModelInfo>((m) {
+          final pricing = m['pricing'] as Map<String, dynamic>?;
+          final inputPerToken =
+              double.tryParse(pricing?['prompt']?.toString() ?? '');
+          final outputPerToken =
+              double.tryParse(pricing?['completion']?.toString() ?? '');
+          final arch =
+              m['architecture'] as Map<String, dynamic>?;
+          final modality =
+              arch?['modality'] as String?;
+          return ModelInfo(
+            id: (m['id'] as String?) ?? '',
+            displayName: (m['name'] as String?) ?? (m['id'] as String?) ?? '',
+            inputPricePer1M: inputPerToken != null ? inputPerToken * 1000000 : null,
+            outputPricePer1M: outputPerToken != null ? outputPerToken * 1000000 : null,
+            contextWindow: (m['context_length'] as num?)?.toInt(),
+            capabilities: modality,
+          );
+        }).toList();
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
 
   @override
   Future<BalanceInfo> getBalance() async {
