@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('MoonshotProvider', () {
-    test('returns USD currency for successful balance response', () async {
+    test('returns CNY currency for successful balance response', () async {
       final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
       addTearDown(server.close);
 
@@ -35,7 +35,7 @@ void main() {
 
       final balance = await provider.getBalance();
 
-      expect(balance.currency, 'USD');
+      expect(balance.currency, 'CNY');
       expect(balance.balance, 12.5);
     });
 
@@ -60,7 +60,7 @@ void main() {
 
       final balance = await provider.getBalance();
 
-      expect(balance.currency, 'USD');
+      expect(balance.currency, 'CNY');
       expect(balance.status, BalanceStatus.invalidKey);
     });
   });

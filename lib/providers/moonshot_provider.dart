@@ -48,7 +48,7 @@ class MoonshotProvider extends AIProvider {
         // Response: { code: 0, data: { available_balance, voucher_balance, cash_balance }, status: true }
         final data = raw['data'] as Map<String, dynamic>? ?? raw;
         final balance = (data['available_balance'] as num?)?.toDouble() ?? 0;
-        final currency = 'USD';
+        final currency = 'CNY';
 
         return BalanceInfo(
           providerId: providerId,
@@ -74,7 +74,7 @@ class MoonshotProvider extends AIProvider {
           providerId: providerId,
           providerName: type.displayName,
           balance: 0,
-          currency: 'USD',
+          currency: 'CNY',
           lastUpdated: DateTime.now(),
           status: BalanceStatus.invalidKey,
           rawResponse: {'error': 'HTTP ${resp.statusCode}', 'body': errorBody},
