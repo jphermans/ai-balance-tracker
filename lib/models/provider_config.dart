@@ -114,7 +114,7 @@ enum ProviderType {
       case ProviderType.siliconflow:
         return 'SiliconFlow';
       case ProviderType.moonshot:
-        return 'Moonshot AI';
+        return 'Kimi';
       case ProviderType.cerebras:
         return 'Cerebras';
       case ProviderType.replicate:

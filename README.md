@@ -12,7 +12,7 @@
 - **Unified Dashboard** — View balances from all your AI providers in one place
 - **Auto-Refresh on Launch** — Balances load automatically when the app starts
 - **Offline Banner** — Orange banner warns when device has no network connection
-- **8 providers with full balance tracking** — OpenAI, Anthropic, DeepSeek, OpenRouter, Together AI, Groq, SiliconFlow, Moonshot
+- **8 providers with full balance tracking** — OpenAI, Anthropic, DeepSeek, OpenRouter, Together AI, Groq, SiliconFlow, Kimi
 - **19 providers total** — Remaining 11 use key validation when balance API is unavailable
 - **Spending History Chart** — 7/30/90-day balance snapshots with interactive line chart and touch tooltips
 - **CSV Export** — Export provider data and spending history via share sheet
@@ -38,7 +38,7 @@
 | OpenRouter | ✅ | ✅ |
 | Together AI | ✅ | ✅ |
 | SiliconFlow | ✅ | ✅ |
-| Moonshot AI | ✅ | ✅ |
+| Kimi | ✅ | ✅ |
 | Groq | ⚠️ | ✅ |
 | Google AI Studio | ❌ | ✅ |
 | xAI | ❌ | ✅ |
@@ -83,7 +83,7 @@ lib/
 │   ├── groq_provider.dart       # Key validation via /models
 │   ├── together_provider.dart   # /v1/billing
 │   ├── siliconflow_provider.dart # /v1/user/info
-│   ├── moonshot_provider.dart   # /v1/users/me/balance
+│   ├── moonshot_provider.dart   # Kimi /v1/users/me/balance
 │   ├── stub_provider.dart       # Key validation for 11 other providers
 │   └── provider_registry.dart   # Provider → adapter mapping
 ├── services/
