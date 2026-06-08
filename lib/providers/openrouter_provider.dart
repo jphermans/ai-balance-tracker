@@ -34,7 +34,7 @@ class OpenRouterProvider extends AIProvider {
               m['architecture'] as Map<String, dynamic>?;
           final modality =
               arch?['modality'] as String?;
-          return ModelInfo(
+          return ModelInfo.enriched(
             id: (m['id'] as String?) ?? '',
             displayName: (m['name'] as String?) ?? (m['id'] as String?) ?? '',
             inputPricePer1M: inputPerToken != null ? inputPerToken * 1000000 : null,

@@ -23,7 +23,7 @@ class MoonshotProvider extends AIProvider {
       if (resp.statusCode == 200) {
         final raw = jsonDecode(resp.body);
         final list = (raw['data'] as List<dynamic>?) ?? [];
-        return list.map<ModelInfo>((m) => ModelInfo(
+        return list.map<ModelInfo>((m) => ModelInfo.enriched(
           id: (m['id'] as String?) ?? '',
           displayName: (m['id'] as String?) ?? '',
         )).toList();

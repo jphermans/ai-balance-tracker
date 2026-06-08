@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-16.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.8.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+[![Version](https://img.shields.io/badge/version-1.8.2-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 
 ## Features
 
@@ -26,7 +26,7 @@
 - **Custom App Icon** — AI-themed neural network icon with gradient purple/blue palette
 - **Unsigned IPA in CI** — Every push produces a downloadable IPA for sideloading
 - **Developer Mode** — View raw API responses + endpoint URL per provider (always visible on detail screen)
-- **Model Browser** — Browse available models per provider with pricing, context window, and capabilities
+- **Model Browser** — Browse available models with pricing, context window, and capabilities (hardcoded pricing for 30+ popular models)
 - **Balance Not Supported Banner** — Cards clearly indicate when a provider only supports key validation
 
 ## Supported Providers
