@@ -25,9 +25,8 @@ class MoonshotProvider extends AIProvider {
         final raw = jsonDecode(resp.body);
         // Response: { code: 0, data: { available_balance, voucher_balance, cash_balance }, status: true }
         final data = raw['data'] as Map<String, dynamic>? ?? raw;
-        final rawBalance = (data['available_balance'] as num?)?.toDouble() ?? 0;
-        final balance = rawBalance * 0.14; // CNY → USD
-        final currency = 'USD'; // converted from CNY
+        final balance = (data['available_balance'] as num?)?.toDouble() ?? 0;
+        final currency = 'USD';
 
         return BalanceInfo(
           providerId: providerId,
