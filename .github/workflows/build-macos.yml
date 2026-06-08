@@ -10,38 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  build-intel:
-    name: Intel (x86_64)
-    runs-on: macos-13
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.38.5'
-          channel: 'stable'
-          cache: true
-
-      - name: Flutter pub get
-        run: flutter pub get
-
-      - name: Build macOS app (Intel)
-        run: flutter build macos --release
-
-      - name: Package as .app bundle
-        run: |
-          cd build/macos/Build/Products/Release
-          APP=$(ls -d *.app | head -1)
-          echo "Packaging: $APP"
-          zip -r -y ai-balance-tracker-macos-intel.zip "$APP"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ai-balance-tracker-macos-intel
-          path: build/macos/Build/Products/Release/ai-balance-tracker-macos-intel.zip
-          retention-days: 30
-
-  build-arm64:
+  build:
     name: Apple Silicon (arm64)
     runs-on: macos-14
     steps:
@@ -56,7 +25,7 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
-      - name: Build macOS app (ARM64)
+      - name: Build macOS app
         run: flutter build macos --release
 
       - name: Package as .app bundle
@@ -64,31 +33,25 @@ jobs:
           cd build/macos/Build/Products/Release
           APP=$(ls -d *.app | head -1)
           echo "Packaging: $APP"
-          zip -r -y ai-balance-tracker-macos-arm64.zip "$APP"
+          zip -r -y ai-balance-tracker-macos.zip "$APP"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ai-balance-tracker-macos-arm64
-          path: build/macos/Build/Products/Release/ai-balance-tracker-macos-arm64.zip
+          name: ai-balance-tracker-macos
+          path: build/macos/Build/Products/Release/ai-balance-tracker-macos.zip
           retention-days: 30
 
   release:
     name: Create Release
     runs-on: ubuntu-latest
-    needs: [build-intel, build-arm64]
+    needs: [build]
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: ai-balance-tracker-macos-intel
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: ai-balance-tracker-macos-arm64
+          name: ai-balance-tracker-macos
 
       - uses: softprops/action-gh-release@v2
         with:
-          files: |
-            ai-balance-tracker-macos-intel.zip
-            ai-balance-tracker-macos-arm64.zip
+          files: ai-balance-tracker-macos.zip
           generate_release_notes: true

@@ -30,7 +30,7 @@
 - **Model Browser** — Browse 50+ models with pricing, context window, and capabilities across all providers
 - **Balance Not Supported Banner** — Cards clearly indicate when a provider only supports key validation
 - **iOS Liquid Glass Design** — Frosted translucent surfaces, BackdropFilter blur, dark/light adaptive glass throughout the app
-- **macOS Desktop App** — Native macOS build with fixed 800×600 window, separate Intel and Apple Silicon downloads
+- **macOS Desktop App** — Native macOS build with fixed 800×600 window, Apple Silicon binary
 
 ## Supported Providers
 
@@ -203,25 +203,21 @@ flutter run -d <id>  # connected iPhone
 
 ## macOS Desktop Build
 
-The CI builds separate Intel (x86_64) and Apple Silicon (arm64) .app bundles.
+The CI builds a single Apple Silicon .app bundle.
 
 ### Download
 
-Go to [Actions → Build macOS App](https://github.com/jphermans/ai-balance-tracker/actions/workflows/build-macos.yml) → click the latest run → download the artifact for your chipset.
+Go to [Actions → Build macOS App](https://github.com/jphermans/ai-balance-tracker/actions/workflows/build-macos.yml) → click the latest run → download `ai-balance-tracker-macos`.
 
 Or grab the latest from [Releases](https://github.com/jphermans/ai-balance-tracker/releases) (tagged builds only):
 
-- `ai-balance-tracker-macos-arm64.zip` — Apple Silicon (M1/M2/M3/M4)
-- `ai-balance-tracker-macos-intel.zip` — Intel Macs
+- `ai-balance-tracker-macos.zip` — Apple Silicon (M1/M2/M3/M4)
 
 ### Install
 
 ```bash
-# Unzip and drag to /Applications
-unzip ai-balance-tracker-macos-arm64.zip
+unzip ai-balance-tracker-macos.zip
 mv "AI Balance Tracker.app" /Applications/
-
-# If macOS blocks it (unidentified developer):
 xattr -cr "/Applications/AI Balance Tracker.app"
 ```
 
@@ -366,9 +362,8 @@ The `.github/workflows/build-macos.yml` workflow:
 
 | Job | Trigger | Output |
 |-----|---------|--------|
-| **macOS Intel** | Every push to `main` | `ai-balance-tracker-macos-intel.zip` |
-| **macOS ARM64** | Every push to `main` | `ai-balance-tracker-macos-arm64.zip` |
-| **GitHub Release** | Tag push (`v*`) | Both macOS zips attached |
+| **macOS (ARM64)** | Every push to `main` | `ai-balance-tracker-macos.zip` |
+| **GitHub Release** | Tag push (`v*`) | macOS zip attached |
 
 ## License
 
