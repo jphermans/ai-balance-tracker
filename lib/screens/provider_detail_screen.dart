@@ -25,7 +25,7 @@ class ProviderDetailScreen extends ConsumerStatefulWidget {
 class _ProviderDetailScreenState extends ConsumerState<ProviderDetailScreen> {
   UsageInfo? _usage;
   bool _loadingUsage = false;
-  bool _showRaw = false;
+  bool _showRaw = true;
   List<BalanceSnapshot> _snapshots = [];
   bool _loadingSnapshots = false;
   int _chartDays = 7;

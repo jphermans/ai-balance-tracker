@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-17.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.13.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+[![Version](https://img.shields.io/badge/version-1.13.1-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 [![macOS](https://img.shields.io/badge/macOS-13.0+-000000?logo=apple)](https://apple.com/macos)
 
 ## Features
@@ -13,8 +13,8 @@
 - **Unified Dashboard** — View balances from all your AI providers in one place
 - **Auto-Refresh on Launch** — Balances load automatically when the app starts
 - **Offline Banner** — Orange banner warns when device has no network connection
-- **9 providers with full balance tracking** — OpenAI, Anthropic, DeepSeek, OpenRouter, Together AI, Groq, SiliconFlow, Kimi
-- **20 providers total** — 11 use key validation, 1 added: Qwen (Alibaba Cloud)
+- **10 providers with full balance tracking** — OpenAI, Anthropic, DeepSeek, OpenRouter, Together AI, Groq, SiliconFlow, Kimi, Moonshot
+- **22 providers total** — 13 use key validation, 2 added: Qwen (Alibaba Cloud), Moonshot
 - **Spending History Chart** — 7/30/90-day balance snapshots with interactive line chart and touch tooltips
 - **CSV Export** — Export provider data and spending history via share sheet
 - **Color-Coded Provider Cards** — Green/orange/red balance threshold indicators (≥10/≥5/<5)
@@ -44,6 +44,7 @@
 | Together AI | ✅ | ✅ |
 | SiliconFlow | ✅ | ✅ |
 | Kimi | ✅ | ✅ |
+| Moonshot | ✅ | ✅ |
 | Qwen (Alibaba) | ❌ | ✅ |
 | Groq | ⚠️ | ✅ |
 | Google AI Studio | ❌ | ✅ |
@@ -507,6 +508,28 @@ To enable cloud sync in CI builds, add these GitHub Actions secrets:
 
 These are passed to Flutter via `--dart-define` in both iOS and macOS workflows.
 Without them, the app builds and runs in local-only mode.
+
+## Version History
+
+### v1.13.1
+- Raw API response section now **expanded by default** on provider detail screen
+- Moonshot currency fixed to **CNY** (was incorrectly USD)
+- Moonshot added to providers table (was missing)
+
+### v1.13.0
+- **Supabase cloud sync** — provider configs sync between iOS ↔ macOS realtime
+- macOS storage fix — SharedPreferences instead of Keychain on unsigned macOS
+- macOS window resizable (min 800×600), sandbox disabled
+- Firebase setup guide added to README
+
+### v1.12.1
+- macOS app icon from iOS source, black screen fix (sandbox disabled)
+
+### v1.12.0
+- macOS ARM desktop app, Intel build dropped (runner unavailable)
+
+### v1.11.0
+- Liquid glass design system for iOS (BackdropFilter blur, frosted surfaces)
 
 ## License
 
