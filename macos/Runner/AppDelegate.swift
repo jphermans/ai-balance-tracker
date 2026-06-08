@@ -3,20 +3,50 @@ import FlutterMacOS
 
 @main
 class AppDelegate: FlutterAppDelegate {
+  
+  private var mainWindow: NSWindow?
+  
   override func applicationDidFinishLaunching(_ notification: Notification) {
-    // Show and activate the main window
-    if let window = NSApp.windows.first {
-      window.makeKeyAndOrderFront(nil)
-    }
+    // Let Flutter set up first
+    super.applicationDidFinishLaunching(notification)
+    
+    let windowWidth: CGFloat = 800
+    let windowHeight: CGFloat = 600
+    
+    // Create the Flutter view controller
+    let flutterViewController = FlutterViewController()
+    RegisterGeneratedPlugins(registry: flutterViewController)
+    
+    // Create the window programmatically
+    let window = NSWindow(
+      contentRect: NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight),
+      styleMask: [.titled, .closable, .miniaturizable],
+      backing: .buffered,
+      defer: false
+    )
+    
+    window.title = "AI Balance Tracker"
+    window.contentViewController = flutterViewController
+    window.isReleasedWhenClosed = false
+    
+    // Fixed size
+    window.styleMask.remove(.resizable)
+    window.contentMinSize = NSSize(width: windowWidth, height: windowHeight)
+    window.contentMaxSize = NSSize(width: windowWidth, height: CGFloat.greatestFiniteMagnitude)
+    
+    // Center on screen
+    window.center()
+    
+    // Show it
+    window.makeKeyAndOrderFront(nil)
     NSApp.activate(ignoringOtherApps: true)
+    
+    self.mainWindow = window
   }
   
   override func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-    // Show window when dock icon is clicked
-    if !flag {
-      for window in sender.windows {
-        window.makeKeyAndOrderFront(nil)
-      }
+    if !flag, let window = mainWindow {
+      window.makeKeyAndOrderFront(nil)
     }
     return true
   }
