@@ -552,7 +552,7 @@ class _CloudSyncSectionState extends State<_CloudSyncSection> {
                 children: [
                   Expanded(
                     child: FilledButton.icon(
-                      onPressed: _saving ? null : _save,
+                      onPressed: (_saving || !_canSave) ? null : _save,
                       icon: _saving
                           ? const SizedBox(
                               width: 16,

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'secure_storage_service.dart';
 import 'sync_service.dart';
 import 'supabase_service.dart';
@@ -15,13 +16,16 @@ class HybridStorageService {
   static Future<List<ProviderConfig>> initialize() async {
     // 1. Ensure signed in anonymously
     await SupabaseService.signInAnonymously();
+    debugPrint('[Hybrid] signed in, userId=${SupabaseService.userId}');
 
     // 2. Load local data (always works, even offline)
     final localProviders = await SecureStorageService.loadProviders();
+    debugPrint('[Hybrid] local providers: ${localProviders.length}');
 
     // 3. Try loading cloud data and merge
     try {
       final cloudProviders = await SyncService.fetchAll();
+      debugPrint('[Hybrid] cloud providers: ${cloudProviders.length}');
       final merged = _merge(localProviders, cloudProviders);
 
       // 4. Save merged result locally
@@ -29,12 +33,20 @@ class HybridStorageService {
 
       // 5. Push any local-only or newer-local providers to cloud
       for (final p in merged) {
+        debugPrint('[Hybrid] upserting ${p.type.name}');
         await SyncService.upsert(p);
       }
 
+      debugPrint('[Hybrid] done — merged=${merged.length}');
       return merged;
-    } catch (_) {
-      // Cloud unavailable — app works fine with local-only data
+    } catch (e) {
+      debugPrint('[Hybrid] cloud error: $e');
+      // Push local providers to cloud anyway so new device gets them
+      for (final p in localProviders) {
+        try {
+          await SyncService.upsert(p.copyWith(updatedAt: DateTime.now().toUtc()));
+        } catch (_) {}
+      }
       return localProviders;
     }
   }

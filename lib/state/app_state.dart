@@ -4,6 +4,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import '../models/balance_info.dart';
 import '../models/provider_config.dart';
 import '../services/hybrid_storage_service.dart';
+import '../services/supabase_service.dart';
 import '../services/balance_service.dart';
 import '../services/history_service.dart';
 import '../services/pin_service.dart';
@@ -17,6 +18,12 @@ class ProvidersNotifier extends StateNotifier<List<ProviderConfig>> {
 
   Future<void> _load() async {
     state = await HybridStorageService.loadProviders();
+    // Start listening for realtime cloud changes
+    if (SupabaseService.isInitialized) {
+      HybridStorageService.startRealtimeSync((providers) {
+        state = providers;
+      });
+    }
   }
 
   Future<void> addProvider(ProviderConfig config) async {
