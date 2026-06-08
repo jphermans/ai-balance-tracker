@@ -159,7 +159,7 @@ enum ProviderType {
       case ProviderType.siliconflow:
         return 'https://api.siliconflow.cn';
       case ProviderType.moonshot:
-        return 'https://api.moonshot.cn';
+        return 'https://api.moonshot.ai';
       case ProviderType.cerebras:
         return 'https://api.cerebras.ai';
       case ProviderType.replicate:

@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-16.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.7.2-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+[![Version](https://img.shields.io/badge/version-1.7.3-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 
 ## Features
 
@@ -83,7 +83,7 @@ lib/
 │   ├── groq_provider.dart       # Key validation via /models
 │   ├── together_provider.dart   # /v1/billing
 │   ├── siliconflow_provider.dart # /v1/user/info
-│   ├── moonshot_provider.dart   # Kimi /v1/users/me/balance
+│   ├── moonshot_provider.dart   # Kimi api.moonshot.ai/v1/users/me/balance
 │   ├── stub_provider.dart       # Key validation for 11 other providers
 │   └── provider_registry.dart   # Provider → adapter mapping
 ├── services/
