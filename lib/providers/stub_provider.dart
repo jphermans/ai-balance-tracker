@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'ai_provider.dart';
 import '../models/balance_info.dart';
 import '../models/usage_info.dart';
+import '../models/model_info.dart';
 import '../models/provider_config.dart';
 
 /// Stub provider for AI services without a dedicated balance/credits API.
@@ -59,6 +61,29 @@ class StubProvider extends AIProvider {
   }
 
   @override
+  Future<List<ModelInfo>> fetchModels() async {
+    final url = _modelsUrl;
+    if (url.isEmpty) return [];
+    try {
+      final uri = Uri.parse(url);
+      final resp = type == ProviderType.googleAI
+          ? await http.get(uri)
+          : await http.get(uri, headers: headers);
+      if (resp.statusCode == 200 && resp.body.isNotEmpty) {
+        final raw = jsonDecode(resp.body);
+        final list = (raw['data'] as List<dynamic>?) ?? [];
+        return list.map<ModelInfo>((m) => ModelInfo(
+          id: (m['id'] as String?) ?? '',
+          displayName: (m['id'] as String?) ?? '',
+        )).toList();
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  @override
   Future<UsageInfo> getUsage() async {
     return const UsageInfo(spentThisMonth: 0, totalCredits: 0);
   }
@@ -101,6 +126,22 @@ class StubProvider extends AIProvider {
         return '$baseUrl/studio/v1/models';
       default:
         return '$baseUrl/v1/models';
+    }
+  }
+
+  /// Returns a model-listing URL, or empty if the provider has no models endpoint.
+  String get _modelsUrl {
+    switch (type) {
+      case ProviderType.googleAI:
+        return '$baseUrl/v1beta/models?key=${config.apiKey}';
+      case ProviderType.cohere: // /check-api-key, not a model list
+        return '';
+      case ProviderType.perplexity: // /chat/completions, not a model list
+        return '';
+      case ProviderType.huggingface: // /whoami-v2, not a model list
+        return '';
+      default:
+        return _checkUrl; // most use /v1/models already
     }
   }
 }
