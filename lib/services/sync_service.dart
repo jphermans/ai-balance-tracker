@@ -7,7 +7,7 @@ import 'supabase_service.dart';
 class SyncService {
   static SupabaseClient get _db => SupabaseService.client;
 
-  /// Fetch all provider configs for the current user from Supabase.
+  /// Fetch all provider configs from Supabase (cross-device, no user filter).
   static Future<List<ProviderConfig>> fetchAll() async {
     final userId = SupabaseService.userId;
     if (userId == null) return [];
@@ -15,7 +15,6 @@ class SyncService {
     final response = await _db
         .from('provider_configs')
         .select()
-        .eq('user_id', userId)
         .order('updated_at', ascending: false);
 
     return (response as List<dynamic>)
@@ -66,7 +65,6 @@ class SyncService {
     return _db
         .from('provider_configs')
         .stream(primaryKey: ['id'])
-        .eq('user_id', userId)
         .map((rows) => rows
             .map((row) => _fromRow(row))
             .toList());
