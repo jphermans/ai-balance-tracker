@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/provider_config.dart';
 import 'supabase_service.dart';
@@ -25,8 +26,12 @@ class SyncService {
   /// Upsert a single provider config to Supabase.
   static Future<void> upsert(ProviderConfig config) async {
     final userId = SupabaseService.userId;
-    if (userId == null) return;
+    if (userId == null) {
+      debugPrint('[Sync] upsert skipped: no userId');
+      return;
+    }
 
+    debugPrint('[Sync] upsert ${config.id}: user=$userId, type=${config.type.name}');
     await _db.from('provider_configs').upsert({
       'user_id': userId,
       'provider_id': config.id,

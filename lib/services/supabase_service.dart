@@ -56,8 +56,13 @@ class SupabaseService {
   /// Safe to call multiple times; returns immediately if already signed in.
   static Future<void> signInAnonymously() async {
     final session = client.auth.currentSession;
-    if (session != null) return;
+    if (session != null) {
+      debugPrint('[Supabase] already signed in as ${session.user.id}');
+      return;
+    }
+    debugPrint('[Supabase] signing in anonymously...');
     await client.auth.signInAnonymously();
+    debugPrint('[Supabase] signed in as ${client.auth.currentUser?.id}');
   }
 
   /// Current authenticated user ID, or null if not signed in.

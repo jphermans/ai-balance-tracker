@@ -6,7 +6,7 @@ import '../models/provider_config.dart';
 import '../services/pin_service.dart';
 import '../services/supabase_config_service.dart';
 import '../services/supabase_service.dart';
-import '../services/hybrid_storage_service.dart';
+import '../services/sync_service.dart';
 import '../services/secure_storage_service.dart';
 import 'add_provider_screen.dart';
 import '../services/export_service.dart';
@@ -346,20 +346,43 @@ class _CloudSyncSectionState extends State<_CloudSyncSection> {
         await SupabaseService.reinitialize(url: url, anonKey: key);
         await SupabaseService.signInAnonymously();
 
-        // Push all local providers to the cloud
-        final localProviders = await SecureStorageService.loadProviders();
-        for (final p in localProviders) {
-          await HybridStorageService.saveProvider(p);
+        final userId = SupabaseService.userId;
+        if (userId == null) {
+          setState(() {
+            _connected = false;
+            _statusText = 'Signed in but no user ID';
+          });
+          return;
         }
 
-        setState(() {
-          _connected = true;
-          _statusText = 'Connected';
-        });
-      } catch (_) {
+        // Push all local providers directly to cloud
+        final localProviders = await SecureStorageService.loadProviders();
+        int synced = 0;
+        final errors = <String>[];
+        for (final p in localProviders) {
+          try {
+            await SyncService.upsert(p.copyWith(updatedAt: DateTime.now().toUtc()));
+            synced++;
+          } catch (e) {
+            errors.add('${p.type.displayName}: $e');
+          }
+        }
+
+        if (errors.isNotEmpty) {
+          setState(() {
+            _connected = false;
+            _statusText = '$synced/${localProviders.length} synced — errors: ${errors.take(2).join("; ")}';
+          });
+        } else {
+          setState(() {
+            _connected = true;
+            _statusText = 'Connected ($synced providers synced)';
+          });
+        }
+      } catch (e) {
         setState(() {
           _connected = false;
-          _statusText = 'Saved — reconnect on next launch';
+          _statusText = 'Error: ${e.toString().split("\n").first}';
         });
       }
 
