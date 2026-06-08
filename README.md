@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-17.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.12.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+[![Version](https://img.shields.io/badge/version-1.13.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 [![macOS](https://img.shields.io/badge/macOS-13.0+-000000?logo=apple)](https://apple.com/macos)
 
 ## Features
@@ -28,9 +28,10 @@
 - **Unsigned IPA in CI** — Every push produces a downloadable IPA for sideloading
 - **Developer Mode** — View raw API responses + endpoint URL per provider (always visible on detail screen)
 - **Model Browser** — Browse 50+ models with pricing, context window, and capabilities across all providers
+- **Cross-Device Sync (Supabase)** — Sync provider configs between iOS and macOS via Supabase realtime. Local-first — works fully offline.
+- **macOS Desktop App** — Native macOS build with resizable window (min 800×600) and custom app icon
 - **Balance Not Supported Banner** — Cards clearly indicate when a provider only supports key validation
 - **iOS Liquid Glass Design** — Frosted translucent surfaces, BackdropFilter blur, dark/light adaptive glass throughout the app
-- **macOS Desktop App** — Native macOS build with fixed 800×600 window, Apple Silicon binary
 
 ## Supported Providers
 
@@ -201,6 +202,61 @@ flutter run -d macos # macOS desktop
 flutter run -d <id>  # connected iPhone
 ```
 
+### Supabase Cloud Sync (optional)
+
+Provider configurations can sync across iOS and macOS devices via Supabase.
+The app works fully offline without Supabase — cloud sync is opt-in.
+
+**1. Create a free Supabase project**
+
+Go to [database.new](https://database.new/) and create a new project.
+Note your **Project URL** and **anon public key** from Project Settings → API.
+
+**2. Enable anonymous sign-ins**
+
+In your Supabase dashboard: Authentication → Settings → enable **Allow anonymous sign-ins**.
+
+**3. Run the database schema**
+
+Open the SQL Editor in your Supabase dashboard and run:
+
+```sql
+-- Create the provider configs table
+CREATE TABLE provider_configs (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id         UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  provider_id     TEXT NOT NULL,
+  type            TEXT NOT NULL,
+  api_key         TEXT NOT NULL,
+  org_id          TEXT,
+  account_id      TEXT,
+  custom_endpoint TEXT,
+  enabled         BOOLEAN NOT NULL DEFAULT true,
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(user_id, provider_id)
+);
+
+-- Enable realtime for instant cross-device sync
+ALTER PUBLICATION supabase_realtime ADD TABLE provider_configs;
+
+-- Row Level Security: users can only access their own configs
+ALTER TABLE provider_configs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users manage own configs" ON provider_configs
+  FOR ALL USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+```
+
+**4. Pass credentials at build time**
+
+```bash
+flutter run -d macos \
+  --dart-define=SUPABASE_URL=https://your-project.supabase.co \
+  --dart-define=SUPABASE_ANON_KEY=your-anon-key
+```
+
+For Xcode builds, add these to your scheme's environment variables.
+CI builds pass them via GitHub Actions secrets.
+
 ## macOS Desktop Build
 
 The CI builds a single Apple Silicon .app bundle.
@@ -364,6 +420,15 @@ The `.github/workflows/build-macos.yml` workflow:
 |-----|---------|--------|
 | **macOS (ARM64)** | Every push to `main` | `ai-balance-tracker-macos.zip` |
 | **GitHub Release** | Tag push (`v*`) | macOS zip attached |
+
+### Supabase credentials in CI
+
+To enable cloud sync in CI builds, add these GitHub Actions secrets:
+- `SUPABASE_URL` — Your Supabase project URL
+- `SUPABASE_ANON_KEY` — Your Supabase anon/public key
+
+These are passed to Flutter via `--dart-define` in both iOS and macOS workflows.
+Without them, the app builds and runs in local-only mode.
 
 ## License
 
