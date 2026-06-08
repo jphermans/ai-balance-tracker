@@ -8,6 +8,7 @@ import '../models/usage_info.dart';
 import '../models/balance_snapshot.dart';
 import '../services/balance_service.dart';
 import '../services/history_service.dart';
+import '../models/provider_config.dart' show ProviderType;
 
 class ProviderDetailScreen extends ConsumerStatefulWidget {
   final String providerId;
@@ -209,33 +210,36 @@ class _ProviderDetailScreenState extends ConsumerState<ProviderDetailScreen> {
               ),
               const SizedBox(height: 24),
             ],
-            // Raw response toggle
-            if (info.rawResponse != null)
-              Card(
-                child: ExpansionTile(
-                  leading: const Icon(Icons.code_rounded),
-                  title: const Text('Raw API Response'),
-                  subtitle: const Text('Developer mode'),
-                  initiallyExpanded: _showRaw,
-                  onExpansionChanged: (expanded) =>
-                      setState(() => _showRaw = expanded),
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      color: colorScheme.surfaceContainerHighest,
-                      child: SelectableText(
-                        _formatJson(info.rawResponse!),
-                        style: TextStyle(
-                          fontFamily: 'monospace',
-                          fontSize: 12,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
+            // Raw API section — always visible for debugging
+            Card(
+              child: ExpansionTile(
+                leading: const Icon(Icons.code_rounded),
+                title: const Text('Raw API Response'),
+                subtitle: Text(_apiUrlLabel(widget.providerId)),
+                initiallyExpanded: _showRaw,
+                onExpansionChanged: (expanded) =>
+                    setState(() => _showRaw = expanded),
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    color: colorScheme.surfaceContainerHighest,
+                    child: SelectableText(
+                      info.rawResponse != null
+                          ? _formatJson(info.rawResponse!)
+                          : 'No response data available.\n\n'
+                              'URL: ${_apiUrl(widget.providerId)}\n'
+                              'Status: ${info.status.displayName}',
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+            ),
           ],
         ),
       ),
@@ -253,6 +257,48 @@ class _ProviderDetailScreenState extends ConsumerState<ProviderDetailScreen> {
 
   String _formatJson(Map<String, dynamic> json) {
     return JsonEncoder.withIndent('  ').convert(json);
+  }
+
+  /// Returns the API endpoint URL for a provider type.
+  String _apiUrl(String providerId) {
+    try {
+      final type = ProviderType.values.firstWhere((t) => t.name == providerId);
+      return '${type.baseUrl}${_apiPath(type)}';
+    } catch (_) {
+      return 'unknown';
+    }
+  }
+
+  /// Returns a shorter label for the subtitle.
+  String _apiUrlLabel(String providerId) {
+    final url = _apiUrl(providerId);
+    if (url == 'unknown') return 'Developer mode';
+    // Trim the protocol for compact display
+    return url.replaceFirst(RegExp(r'^https?://'), '');
+  }
+
+  /// Returns the known balance/validation API path for each provider type.
+  String _apiPath(ProviderType type) {
+    switch (type) {
+      case ProviderType.openai:
+        return '/v1/dashboard/billing/credit_grants';
+      case ProviderType.anthropic:
+        return '/v1/organizations/{id}/usage';
+      case ProviderType.deepseek:
+        return '/user/balance';
+      case ProviderType.openrouter:
+        return '/api/v1/credits';
+      case ProviderType.groq:
+        return '/openai/v1/models';
+      case ProviderType.together:
+        return '/v1/billing';
+      case ProviderType.siliconflow:
+        return '/v1/user/info';
+      case ProviderType.moonshot:
+        return '/v1/users/me/balance';
+      default:
+        return '/v1/models';
+    }
   }
 }
 
