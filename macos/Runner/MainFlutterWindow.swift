@@ -35,9 +35,9 @@ class MainFlutterWindow: NSWindow {
     
     RegisterGeneratedPlugins(registry: flutterViewController)
     
-    super.awakeFromNib()
+    // Don't release window when closed — needed for proper lifecycle
+    self.isReleasedWhenClosed = false
     
-    // Ensure window is visible and focused
-    self.makeKeyAndOrderFront(nil)
+    super.awakeFromNib()
   }
 }
