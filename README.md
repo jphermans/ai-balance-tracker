@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-16.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.10.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+[![Version](https://img.shields.io/badge/version-1.10.1-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 
 ## Features
 
@@ -28,7 +28,7 @@
 - **Developer Mode** — View raw API responses + endpoint URL per provider (always visible on detail screen)
 - **Model Browser** — Browse 50+ models with pricing, context window, and capabilities across all providers
 - **Balance Not Supported Banner** — Cards clearly indicate when a provider only supports key validation
-- **iOS Home Screen Widget** — WidgetKit widget shows total balance + provider count at a glance, tap to open app, dark/light mode
+- **iOS Home Screen Widget** *(included in source, disabled in CI builds — requires paid Apple Developer account)* — WidgetKit widget shows total balance + provider count
 
 ## Supported Providers
 
@@ -120,6 +120,8 @@ ios/BalanceWidget/
 ```
 
 **Data flow:** Flutter → MethodChannel → App Group UserDefaults → Widget reads on timeline refresh
+
+> ⚠️ **Widget requires a paid Apple Developer account.** Free provisioning profiles don't support app extensions. The IPA built by CI does NOT include the widget. To enable it locally: add the `BalanceWidgetExtension` target to the Xcode scheme via `ios/add_widget_target.py`.
 
 ## Screens
 
@@ -225,10 +227,6 @@ Create a file `entitlements.plist` (or use the one in `ios/entitlements.plist` f
     <string>YOUR_TEAM_ID</string>
     <key>get-task-allow</key>
     <true/>
-    <key>com.apple.security.application-groups</key>
-    <array>
-        <string>group.com.jphermans.ai-balance-tracker</string>
-    </array>
 </dict>
 </plist>
 ```
