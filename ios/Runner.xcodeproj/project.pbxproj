@@ -17,10 +17,8 @@
 		2492EA87B0054A1DB6F2BFAE /* BalanceWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1060D07FAB641E6912E326F /* BalanceWidgetBundle.swift */; };
 		15D350885AEE4E858210A325 /* BalanceWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB6A5B397F0447C2A5F7EA21 /* BalanceWidget.swift */; };
 		4628EA9C26704F10B5569CDE /* BalanceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011F32C9C4A142F68EC92BC0 /* BalanceProvider.swift */; };
-		9FE4E1F1C51A4C0D89282601 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 9A10451711A64EAB9B0EEDE8 /* Info.plist */; };
-		3EEA4CD9D3064FE19BD6F23D /* BalanceWidget.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = C26CE67A50374F0AA5D584DC /* BalanceWidget.entitlements */; };
 		FC7C6879EFE04919B807BD57 /* BalanceWidgetExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 5B348E03957A49E3BA3687B9 /* BalanceWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-/* End PBXBuildFile section */
+		/* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		331C8085294A63A400263BE5 /* PBXContainerItemProxy */ = {
@@ -56,7 +54,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				FC7C6879EFE04919B807BD57 /* BalanceWidgetExtension.appex in Embed App Extensions */,
+		FC7C6879EFE04919B807BD57 /* BalanceWidgetExtension.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -289,8 +287,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9FE4E1F1C51A4C0D89282601 /* Info.plist in Resources */,
-				3EEA4CD9D3064FE19BD6F23D /* BalanceWidget.entitlements in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -352,9 +348,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2492EA87B0054A1DB6F2BFAE /* BalanceWidgetBundle.swift in Sources */,
-				15D350885AEE4E858210A325 /* BalanceWidget.swift in Sources */,
-				4628EA9C26704F10B5569CDE /* BalanceProvider.swift in Sources */,
+		2492EA87B0054A1DB6F2BFAE /* BalanceWidgetBundle.swift in Sources */,
+		15D350885AEE4E858210A325 /* BalanceWidget.swift in Sources */,
+		4628EA9C26704F10B5569CDE /* BalanceProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
