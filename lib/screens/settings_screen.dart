@@ -6,6 +6,8 @@ import '../models/provider_config.dart';
 import '../services/pin_service.dart';
 import '../services/supabase_config_service.dart';
 import '../services/supabase_service.dart';
+import '../services/hybrid_storage_service.dart';
+import '../services/secure_storage_service.dart';
 import 'add_provider_screen.dart';
 import '../services/export_service.dart';
 import '../widgets/glass_card.dart';
@@ -339,10 +341,17 @@ class _CloudSyncSectionState extends State<_CloudSyncSection> {
     try {
       await SupabaseConfigService.saveConfig(url: url, anonKey: key);
 
-      // Try live re-init
+      // Try live re-init + push existing providers
       try {
         await SupabaseService.reinitialize(url: url, anonKey: key);
         await SupabaseService.signInAnonymously();
+
+        // Push all local providers to the cloud
+        final localProviders = await SecureStorageService.loadProviders();
+        for (final p in localProviders) {
+          await HybridStorageService.saveProvider(p);
+        }
+
         setState(() {
           _connected = true;
           _statusText = 'Connected';
