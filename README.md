@@ -257,6 +257,84 @@ flutter run -d macos \
 For Xcode builds, add these to your scheme's environment variables.
 CI builds pass them via GitHub Actions secrets.
 
+### Firebase Cloud Sync (alternative)
+
+If you prefer Firebase over Supabase, here's how to set it up.
+Note: the app ships with Supabase by default — using Firebase requires
+swapping dependencies and rewriting `lib/services/sync_service.dart`.
+
+**1. Create a Firebase project**
+
+Go to the [Firebase Console](https://console.firebase.google.com/) and create a new project.
+Enable **Cloud Firestore** in the left sidebar → Build → Firestore Database.
+
+**2. Install FlutterFire CLI**
+
+```bash
+dart pub global activate flutterfire_cli
+```
+
+**3. Configure your Flutter app**
+
+```bash
+cd ai-balance-tracker
+flutterfire configure
+```
+
+This generates `lib/firebase_options.dart` and registers iOS + macOS
+apps in your Firebase project. Select both platforms when prompted.
+
+**4. Add Firebase dependencies**
+
+```yaml
+# pubspec.yaml
+dependencies:
+  firebase_core: ^3.0.0
+  cloud_firestore: ^5.0.0
+  firebase_auth: ^5.0.0
+```
+
+**5. Create Firestore security rules**
+
+```javascript
+// Firestore Rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /providers/{userId} {
+      match /configs/{configId} {
+        allow read, write: if request.auth != null
+                          && request.auth.uid == userId;
+      }
+    }
+  }
+}
+```
+
+**6. Configure anonymous auth**
+
+In Firebase Console → Authentication → Sign-in method → enable **Anonymous**.
+
+**7. Initialize Firebase in main.dart**
+
+```dart
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'firebase_options.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await FirebaseAuth.instance.signInAnonymously();
+  runApp(const MyApp());
+}
+```
+
+Firebase config is bundled in `firebase_options.dart` — no dart-defines needed.
+The Firestore `snapshots()` stream replaces Supabase's Postgres Changes
+for realtime sync. Use `collection('providers').doc(userId).collection('configs')`
+as your document structure.
+
 ## macOS Desktop Build
 
 The CI builds a single Apple Silicon .app bundle.
