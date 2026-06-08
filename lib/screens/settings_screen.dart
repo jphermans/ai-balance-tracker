@@ -6,8 +6,6 @@ import '../models/provider_config.dart';
 import '../services/pin_service.dart';
 import '../services/supabase_config_service.dart';
 import '../services/supabase_service.dart';
-import '../services/sync_service.dart';
-import '../services/secure_storage_service.dart';
 import 'add_provider_screen.dart';
 import '../services/export_service.dart';
 import '../widgets/glass_card.dart';
@@ -314,7 +312,9 @@ class _CloudSyncSectionState extends State<_CloudSyncSection> {
       _keyController.text = key ?? '';
       setState(() {
         _connected = SupabaseService.isInitialized;
-        _statusText = _connected ? 'Connected' : 'Saved (restart app)';
+        _statusText = _connected
+            ? 'Connected'
+            : 'Saved — restart app to connect';
       });
     } else {
       setState(() {
@@ -330,7 +330,7 @@ class _CloudSyncSectionState extends State<_CloudSyncSection> {
     if (url.isEmpty || key.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Both URL and Anon Key are required'),
+          content: Text('Both URL and Publishable Key are required'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -341,55 +341,15 @@ class _CloudSyncSectionState extends State<_CloudSyncSection> {
     try {
       await SupabaseConfigService.saveConfig(url: url, anonKey: key);
 
-      // Try live re-init + push existing providers
-      try {
-        await SupabaseService.reinitialize(url: url, anonKey: key);
-        await SupabaseService.signInAnonymously();
-
-        final userId = SupabaseService.userId;
-        if (userId == null) {
-          setState(() {
-            _connected = false;
-            _statusText = 'Signed in but no user ID';
-          });
-          return;
-        }
-
-        // Push all local providers directly to cloud
-        final localProviders = await SecureStorageService.loadProviders();
-        int synced = 0;
-        final errors = <String>[];
-        for (final p in localProviders) {
-          try {
-            await SyncService.upsert(p.copyWith(updatedAt: DateTime.now().toUtc()));
-            synced++;
-          } catch (e) {
-            errors.add('${p.type.displayName}: $e');
-          }
-        }
-
-        if (errors.isNotEmpty) {
-          setState(() {
-            _connected = false;
-            _statusText = '$synced/${localProviders.length} synced — errors: ${errors.take(2).join("; ")}';
-          });
-        } else {
-          setState(() {
-            _connected = true;
-            _statusText = 'Connected ($synced providers synced)';
-          });
-        }
-      } catch (e) {
-        setState(() {
-          _connected = false;
-          _statusText = 'Error: ${e.toString().split("\n").first}';
-        });
-      }
+      setState(() {
+        _connected = false;
+        _statusText = 'Saved — restart app to connect';
+      });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Supabase config saved'),
+            content: Text('Supabase config saved. Restart the app to connect.'),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -415,7 +375,8 @@ class _CloudSyncSectionState extends State<_CloudSyncSection> {
       builder: (ctx) => AlertDialog(
         title: const Text('Remove Supabase Config?'),
         content: const Text(
-          'This will disconnect cloud sync. Your provider data stays on this device.',
+          'This will disconnect cloud sync. Your provider data stays on this device.\n\n'
+          'Restart the app after removing to apply the change.',
         ),
         actions: [
           TextButton(
@@ -438,17 +399,16 @@ class _CloudSyncSectionState extends State<_CloudSyncSection> {
     setState(() => _clearing = true);
     try {
       await SupabaseConfigService.clearConfig();
-      await SupabaseService.dispose();
       _urlController.clear();
       _keyController.clear();
       setState(() {
         _connected = false;
-        _statusText = 'Not configured';
+        _statusText = 'Removed — restart app';
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Supabase config removed'),
+            content: Text('Supabase config removed. Restart to apply.'),
             behavior: SnackBarBehavior.floating,
           ),
         );

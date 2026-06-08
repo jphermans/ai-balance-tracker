@@ -4,6 +4,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Centralized Supabase initialization and client access.
 /// Call [initialize] once at app startup, then use [client].
+///
+/// IMPORTANT: Supabase.instance is a global singleton. Calling dispose()
+/// and re-initializing mid-app is not supported by the SDK (it closes
+/// internal stream controllers that can't be reopened). To switch
+/// credentials, save the new config and restart the app.
 class SupabaseService {
   static bool _initialized = false;
   static StreamSubscription? _authSub;
@@ -20,35 +25,11 @@ class SupabaseService {
     await Supabase.initialize(url: url, publishableKey: anonKey);
     _initialized = true;
 
-    // Log auth state changes for debugging
+    // Cancel any previous subscription before creating a new one
     _authSub?.cancel();
     _authSub = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       debugPrint('[Supabase] Auth event: ${data.event}');
     });
-  }
-
-  /// Re-initialize with new credentials (e.g. user changed config in Settings).
-  /// Disposes the old client and initializes a fresh one.
-  static Future<void> reinitialize({
-    required String url,
-    required String anonKey,
-  }) async {
-    await dispose();
-    await initialize(url: url, anonKey: anonKey);
-  }
-
-  /// Dispose the current Supabase client so it can be re-created.
-  static Future<void> dispose() async {
-    _authSub?.cancel();
-    _authSub = null;
-    if (!_initialized) return;
-    try {
-      await Supabase.instance.client.auth.signOut();
-    } catch (_) {}
-    try {
-      Supabase.instance.dispose();
-    } catch (_) {}
-    _initialized = false;
   }
 
   /// The Supabase client instance. Access after [initialize].

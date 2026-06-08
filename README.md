@@ -28,7 +28,7 @@
 - **Unsigned IPA in CI** — Every push produces a downloadable IPA for sideloading
 - **Developer Mode** — View raw API responses + endpoint URL per provider (always expanded on detail screen)
 - **Model Browser** — Browse 50+ models with pricing, context window, and capabilities across all providers
-- **Cross-Device Sync (Supabase)** — Sync provider configs between iOS and macOS via Supabase realtime. Configure in Settings — no build flags needed.
+- **Cross-Device Sync (Supabase)** — Sync provider configs between iOS and macOS via Supabase realtime. Enter credentials in Settings → restart app to connect.
 - **macOS Desktop App** — Native macOS build with resizable window (min 800×600) and custom app icon
 - **Balance Not Supported Banner** — Cards clearly indicate when a provider only supports key validation
 - **iOS Liquid Glass Design** — Frosted translucent surfaces, BackdropFilter blur, dark/light adaptive glass throughout the app
@@ -254,9 +254,9 @@ CREATE POLICY "Users manage own configs" ON provider_configs
 **4. Configure in the app**
 
 Open the app → Settings → **Cloud Sync** → paste your Project URL and Publishable Key → tap **Save**.
+Then **restart the app** — it will connect and sync on next launch.
 
-That's it. The app connects live and syncs your provider configs across devices.
-No build flags, no `--dart-define`, no GitHub Secrets needed.
+That's it. No build flags, no `--dart-define`, no GitHub Secrets needed.
 
 To disconnect, tap **Remove** in the Cloud Sync section. Your provider data
 stays on the device — only the sync link is removed.
@@ -522,13 +522,13 @@ End users can still override them from Settings → Cloud Sync.
 ## Version History
 
 ### v1.14.1
-- Fix: existing local providers now sync to cloud on Supabase connect
-- README: updated key terminology (Publishable key) + anon sign-in path
+- Fix: Supabase singleton dispose crash on reconnect — now uses save & restart flow
+- Credentials persist on disk, picked up on next launch
+- Removed live reconnection (SDK limitation: can't re-init singleton)
 
 ### v1.14.0
 - **In-app Supabase config** — URL + anon key text fields in Settings (no build flags needed)
 - Config persists across restarts, removable anytime
-- Live reconnection when saving new credentials
 
 ### v1.13.1
 - Raw API response section now **expanded by default** on provider detail screen
