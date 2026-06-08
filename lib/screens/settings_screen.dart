@@ -513,8 +513,8 @@ class _CloudSyncSectionState extends State<_CloudSyncSection> {
                 controller: _keyController,
                 obscureText: !_showKey,
                 decoration: InputDecoration(
-                  labelText: 'Anon Key',
-                  hintText: 'eyJhbGciOi...',
+                  labelText: 'Publishable Key',
+                  hintText: 'sb_publishable_... (or anon key)',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

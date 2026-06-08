@@ -212,7 +212,8 @@ The app works fully offline without Supabase — cloud sync is opt-in.
 **1. Create a free Supabase project**
 
 Go to [database.new](https://database.new/) and create a new project.
-Note your **Project URL** and **anon public key** from Project Settings → API.
+Note your **Project URL** and **Publishable key** from Project Settings → API
+(look for the key starting with `sb_publishable_` — Supabase may also label it "anon public").
 
 **2. Enable anonymous sign-ins**
 
@@ -250,7 +251,7 @@ CREATE POLICY "Users manage own configs" ON provider_configs
 
 **4. Configure in the app**
 
-Open the app → Settings → **Cloud Sync** → paste your Project URL and Anon Key → tap **Save**.
+Open the app → Settings → **Cloud Sync** → paste your Project URL and Publishable Key → tap **Save**.
 
 That's it. The app connects live and syncs your provider configs across devices.
 No build flags, no `--dart-define`, no GitHub Secrets needed.
@@ -511,7 +512,7 @@ CI builds run in local-only mode by default — users configure cloud sync in-ap
 To pre-configure a CI build with Supabase, add these GitHub Actions secrets:
 
 - `SUPABASE_URL` — Your Supabase project URL
-- `SUPABASE_ANON_KEY` — Your Supabase anon/public key
+- `SUPABASE_ANON_KEY` — Your Supabase Publishable key (starts with `sb_publishable_`)
 
 These are baked into the app at build time via `--dart-define`.
 End users can still override them from Settings → Cloud Sync.
