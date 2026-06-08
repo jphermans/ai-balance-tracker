@@ -217,7 +217,9 @@ Note your **Project URL** and **Publishable key** from Project Settings → API
 
 **2. Enable anonymous sign-ins**
 
-In your Supabase dashboard: Authentication → Settings → enable **Allow anonymous sign-ins**.
+In your Supabase dashboard: **Authentication** → **Providers** tab → scroll to the bottom
+→ toggle **"Allow anonymous sign-ins"** ON.
+(Alternatively: direct link → [Project Auth Providers](https://supabase.com/dashboard/project/_/auth/providers))
 
 **3. Run the database schema**
 
