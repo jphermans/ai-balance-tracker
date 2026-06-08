@@ -298,6 +298,18 @@ class _CloudSyncSectionState extends State<_CloudSyncSection> {
   bool _clearing = false;
   String? _statusText;
   bool _connected = false;
+  String? _savedUrl;
+  String? _savedKey;
+
+  bool get _fieldsUnchanged =>
+      _urlController.text.trim() == (_savedUrl ?? '') &&
+      _keyController.text.trim() == (_savedKey ?? '');
+
+  bool get _canSave =>
+      !_connected &&
+      !_fieldsUnchanged &&
+      _urlController.text.trim().isNotEmpty &&
+      _keyController.text.trim().isNotEmpty;
 
   @override
   void initState() {
@@ -308,6 +320,8 @@ class _CloudSyncSectionState extends State<_CloudSyncSection> {
   Future<void> _loadExisting() async {
     final (url, key) = await SupabaseConfigService.loadConfig();
     if (url != null && mounted) {
+      _savedUrl = url;
+      _savedKey = key ?? '';
       _urlController.text = url;
       _keyController.text = key ?? '';
       setState(() {
@@ -327,32 +341,37 @@ class _CloudSyncSectionState extends State<_CloudSyncSection> {
     final url = _urlController.text.trim();
     final key = _keyController.text.trim();
 
-    if (url.isEmpty || key.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Both URL and Publishable Key are required'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
+    if (url.isEmpty || key.isEmpty) return;
+    if (_connected && _fieldsUnchanged) return; // nothing to do
 
     setState(() => _saving = true);
     try {
       await SupabaseConfigService.saveConfig(url: url, anonKey: key);
+      _savedUrl = url;
+      _savedKey = key;
 
-      setState(() {
-        _connected = false;
-        _statusText = 'Saved — restart app to connect';
-      });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Supabase config saved. Restart the app to connect.'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+      if (_connected) {
+        // Already connected — just updated saved config silently
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Supabase config updated. Restart to apply changes.'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      } else {
+        setState(() {
+          _statusText = 'Saved — restart app to connect';
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Saved. Restart the app to connect.'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
