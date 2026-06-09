@@ -1,4 +1,6 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/pin_service.dart';
 import '../state/app_state.dart';
@@ -158,15 +160,7 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen>
       );
     }
 
-    return Scaffold(
-      appBar: widget.isOnboarding
-          ? null
-          : AppBar(
-              title: const Text('Set PIN'),
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-            ),
-      body: SafeArea(
+    final scaffoldBody = SafeArea(
         child: FadeTransition(
           opacity: _fadeAnim,
           child: SlideTransition(
@@ -265,7 +259,43 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen>
             ),
           ),
         ),
-      ),
+      );
+
+    final body = Platform.isIOS || Platform.isAndroid
+        ? scaffoldBody
+        : Focus(
+            autofocus: true,
+            onKeyEvent: (node, event) {
+              if (event is KeyDownEvent) {
+                if (_saving || _success) return KeyEventResult.ignored;
+                final key = event.logicalKey;
+                if (key >= LogicalKeyboardKey.digit0 &&
+                    key <= LogicalKeyboardKey.digit9) {
+                  final digit = String.fromCharCode(
+                    0x30 + (key.keyId - LogicalKeyboardKey.digit0.keyId));
+                  _onDigit(digit);
+                  return KeyEventResult.handled;
+                }
+                if (key == LogicalKeyboardKey.backspace ||
+                    key == LogicalKeyboardKey.delete) {
+                  _onDelete();
+                  return KeyEventResult.handled;
+                }
+              }
+              return KeyEventResult.ignored;
+            },
+            child: scaffoldBody,
+          );
+
+    return Scaffold(
+      appBar: widget.isOnboarding
+          ? null
+          : AppBar(
+              title: const Text('Set PIN'),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+            ),
+      body: body,
     );
   }
 

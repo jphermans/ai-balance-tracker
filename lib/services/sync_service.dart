@@ -24,15 +24,8 @@ class SyncService {
 
   /// Upsert a single provider config to Supabase.
   static Future<void> upsert(ProviderConfig config) async {
-    final userId = SupabaseService.userId;
-    if (userId == null) {
-      debugPrint('[Sync] upsert skipped: no userId');
-      return;
-    }
-
-    debugPrint('[Sync] upsert ${config.id}: user=$userId, type=${config.type.name}');
+    debugPrint('[Sync] upsert ${config.id}: type=${config.type.name}');
     await _db.from('provider_configs').upsert({
-      'user_id': userId,
       'provider_id': config.id,
       'type': config.type.name,
       'api_key': config.apiKey,
@@ -41,18 +34,14 @@ class SyncService {
       'custom_endpoint': config.customEndpoint,
       'enabled': config.enabled,
       'updated_at': DateTime.now().toUtc().toIso8601String(),
-    }, onConflict: 'user_id, provider_id');
+    }, onConflict: 'provider_id');
   }
 
   /// Delete a provider config from Supabase.
   static Future<void> remove(String providerId) async {
-    final userId = SupabaseService.userId;
-    if (userId == null) return;
-
     await _db
         .from('provider_configs')
         .delete()
-        .eq('user_id', userId)
         .eq('provider_id', providerId);
   }
 

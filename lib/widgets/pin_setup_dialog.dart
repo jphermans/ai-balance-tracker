@@ -1,4 +1,6 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../services/pin_service.dart';
 
 /// Bottom sheet dialog for setting up a new PIN.
@@ -91,7 +93,7 @@ class _PinSetupDialogState extends State<PinSetupDialog> {
     final colorScheme = theme.colorScheme;
     final pin = _isConfirming ? _confirmPin : _pin;
 
-    return Padding(
+    final dialogBody = Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
@@ -190,6 +192,32 @@ class _PinSetupDialogState extends State<PinSetupDialog> {
         ),
       ),
     );
+
+    return Platform.isIOS || Platform.isAndroid
+        ? dialogBody
+        : Focus(
+            autofocus: true,
+            onKeyEvent: (node, event) {
+              if (event is KeyDownEvent) {
+                if (_saving) return KeyEventResult.ignored;
+                final key = event.logicalKey;
+                if (key >= LogicalKeyboardKey.digit0 &&
+                    key <= LogicalKeyboardKey.digit9) {
+                  final digit = String.fromCharCode(
+                    0x30 + (key.keyId - LogicalKeyboardKey.digit0.keyId));
+                  _onDigit(digit);
+                  return KeyEventResult.handled;
+                }
+                if (key == LogicalKeyboardKey.backspace ||
+                    key == LogicalKeyboardKey.delete) {
+                  _onDelete();
+                  return KeyEventResult.handled;
+                }
+              }
+              return KeyEventResult.ignored;
+            },
+            child: dialogBody,
+          );
   }
 }
 
