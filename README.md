@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-17.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.15.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+[![Version](https://img.shields.io/badge/version-1.15.1-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 [![macOS](https://img.shields.io/badge/macOS-13.0+-000000?logo=apple)](https://apple.com/macos)
 
 ## Features
@@ -182,6 +182,15 @@ class MyProvider extends AIProvider {
   }
 }
 ```
+
+## Architecture Diagram
+
+**[▶ Open interactive diagram](https://excalidraw.com/#json=olbwSCpxBgD5Fvz-Y8kUz,13NFR7tZzriZ2Vvk2czBNQ)** (click to zoom, pan, and inspect layers)
+
+![Architecture Overview](assets/architecture_screenshot.png)
+
+> The `.excalidraw` source file is at `assets/architecture.excalidraw` —
+> open it at [excalidraw.com](https://excalidraw.com) to edit.
 
 ## Tech Stack
 
