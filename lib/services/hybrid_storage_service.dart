@@ -105,32 +105,47 @@ class HybridStorageService {
   static void dispose() => _realtimeSub?.cancel();
 
   /// Merge local and cloud provider lists.
-  /// [cloudWins]: when true, cloud always wins conflicts (used for
-  /// realtime pushes from other devices). When false, last-write-wins
-  /// by comparing [updatedAt] timestamps (used for startup merge).
+  /// [cloudWins]: when true, cloud is the authoritative full-state snapshot
+  /// (used for realtime pushes from other devices). Local-only entries not
+  /// in cloud are removed (deletions) but local-only entries are preserved
+  /// (offline additions). When false, last-write-wins by comparing
+  /// [updatedAt] timestamps (used for startup merge).
   static List<ProviderConfig> _merge(
     List<ProviderConfig> local,
     List<ProviderConfig> cloud, {
     bool cloudWins = false,
   }) {
     final map = <String, ProviderConfig>{};
-    for (final p in local) {
-      map[p.id] = p;
-    }
-    for (final c in cloud) {
-      final existing = map[c.id];
-      if (existing == null) {
+
+    if (cloudWins) {
+      // Cloud is the full current DB state — deletions are respected.
+      // Start with cloud, then add local-only entries (offline additions
+      // that haven't synced yet).
+      for (final c in cloud) {
         map[c.id] = c;
-      } else if (cloudWins) {
-        map[c.id] = c;
-      } else {
-        final localTime = existing.updatedAt ?? DateTime(2000);
-        final cloudTime = c.updatedAt ?? DateTime(2000);
-        if (cloudTime.isAfter(localTime)) {
+      }
+      for (final p in local) {
+        map.putIfAbsent(p.id, () => p);
+      }
+    } else {
+      // Startup merge: local-first, cloud overlay with last-write-wins.
+      for (final p in local) {
+        map[p.id] = p;
+      }
+      for (final c in cloud) {
+        final existing = map[c.id];
+        if (existing == null) {
           map[c.id] = c;
+        } else {
+          final localTime = existing.updatedAt ?? DateTime(2000);
+          final cloudTime = c.updatedAt ?? DateTime(2000);
+          if (cloudTime.isAfter(localTime)) {
+            map[c.id] = c;
+          }
         }
       }
     }
+
     return map.values.toList();
   }
 }
