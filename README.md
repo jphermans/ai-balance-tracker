@@ -185,12 +185,9 @@ class MyProvider extends AIProvider {
 
 ## Architecture Diagram
 
-**[▶ Open interactive diagram](https://excalidraw.com/#json=olbwSCpxBgD5Fvz-Y8kUz,13NFR7tZzriZ2Vvk2czBNQ)** (click to zoom, pan, and inspect layers)
-
 ![Architecture Overview](assets/architecture_screenshot.png)
 
-> The `.excalidraw` source file is at `assets/architecture.excalidraw` —
-> open it at [excalidraw.com](https://excalidraw.com) to edit.
+> Open `assets/architecture.excalidraw` at [excalidraw.com](https://excalidraw.com) to view/edit the interactive diagram (drag & drop the file onto the canvas).
 
 ## Tech Stack
 
@@ -546,6 +543,10 @@ These are baked into the app at build time via `--dart-define`.
 End users can still override them from Settings → Cloud Sync.
 
 ## Version History
+
+### v1.15.1
+- **Merge logic fix** — realtime merge (cloudWins) now returns only cloud entries instead of preserving stale local-only ghosts. Deleted providers no longer reappear after sync.
+- Build number bumped to +36
 
 ### v1.15.0
 - **Sync doubling fixed (#22)** — removed user_id isolation; provider_id is now the sole unique key in Supabase. Deletes on one device propagate to all devices instead of being blocked by mismatched anonymous user IDs.
