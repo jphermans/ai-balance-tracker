@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-17.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.14.4-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+[![Version](https://img.shields.io/badge/version-1.15.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 [![macOS](https://img.shields.io/badge/macOS-13.0+-000000?logo=apple)](https://apple.com/macos)
 
 ## Features
@@ -31,7 +31,7 @@
 - **Cross-Device Sync (Supabase)** — Sync provider configs between iOS and macOS via Supabase realtime. Enter credentials in Settings → restart app to connect.
 - **macOS Desktop App** — Native macOS build with resizable window (min 800×600) and custom app icon
 - **Balance Not Supported Banner** — Cards clearly indicate when a provider only supports key validation
-- **iOS Liquid Glass Design** — Frosted translucent surfaces, BackdropFilter blur, dark/light adaptive glass throughout the app
+- **macOS Keyboard PIN** — Type your PIN on desktop using physical keyboard (0-9 + backspace). Touch-only on iOS/iPadOS.
 
 ## Supported Providers
 
@@ -538,7 +538,10 @@ End users can still override them from Settings → Cloud Sync.
 
 ## Version History
 
-### v1.14.4
+### v1.15.0
+- **Sync doubling fixed (#22)** — removed user_id isolation; provider_id is now the sole unique key in Supabase. Deletes on one device propagate to all devices instead of being blocked by mismatched anonymous user IDs.
+- **Cross-device merge fixed** — realtime merge now uses cloud-wins and removes locally-deleted providers that still exist on other devices.
+- **macOS keyboard PIN entry (#21)** — type PIN digits on desktop using physical keyboard (0-9, backspace, delete). iOS/iPadOS unchanged.
 - **Cross-device sync fixed** — removed per-user filter from Supabase queries
 - RLS policy changed to allow all authenticated users (run SQL in Supabase dashboard)
 - macOS now sees iPhone's provider records and vice versa
