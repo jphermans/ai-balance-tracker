@@ -118,14 +118,13 @@ class HybridStorageService {
     final map = <String, ProviderConfig>{};
 
     if (cloudWins) {
-      // Cloud is the full current DB state — deletions are respected.
-      // Start with cloud, then add local-only entries (offline additions
-      // that haven't synced yet).
+      // Cloud is authoritative — deletions are respected.
+      // Local-only entries are NOT preserved; they may be stale ghosts
+      // from the pre-fix era (different user_id per device).
+      // Offline-created entries are pushed to cloud at startup
+      // (initialize step 5) before realtime subscription begins.
       for (final c in cloud) {
         map[c.id] = c;
-      }
-      for (final p in local) {
-        map.putIfAbsent(p.id, () => p);
       }
     } else {
       // Startup merge: local-first, cloud overlay with last-write-wins.
