@@ -269,10 +269,11 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen>
               if (event is KeyDownEvent) {
                 if (_saving || _success) return KeyEventResult.ignored;
                 final key = event.logicalKey;
-                if (key >= LogicalKeyboardKey.digit0 &&
-                    key <= LogicalKeyboardKey.digit9) {
+                final keyId = key.keyId;
+                if (keyId >= LogicalKeyboardKey.digit0.keyId &&
+                    keyId <= LogicalKeyboardKey.digit9.keyId) {
                   final digit = String.fromCharCode(
-                    0x30 + (key.keyId - LogicalKeyboardKey.digit0.keyId));
+                    0x30 + (keyId - LogicalKeyboardKey.digit0.keyId));
                   _onDigit(digit);
                   return KeyEventResult.handled;
                 }
