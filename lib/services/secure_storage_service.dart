@@ -14,7 +14,8 @@ class SecureStorageService {
   static bool get _useSecure =>
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.iOS ||
-       defaultTargetPlatform == TargetPlatform.android);
+       defaultTargetPlatform == TargetPlatform.android ||
+       defaultTargetPlatform == TargetPlatform.macOS);
 
   static Future<void> initialize() async {
     if (_useSecure) {

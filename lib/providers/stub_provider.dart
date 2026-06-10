@@ -13,9 +13,11 @@ class StubProvider extends AIProvider {
 
   @override
   Map<String, String> get headers {
-    // Some providers use different header formats
     if (type == ProviderType.huggingface) {
       return {'Authorization': 'Bearer ${config.apiKey}'};
+    }
+    if (type == ProviderType.googleAI) {
+      return {'x-goog-api-key': config.apiKey};
     }
     return {
       'Authorization': 'Bearer ${config.apiKey}',
@@ -27,9 +29,7 @@ class StubProvider extends AIProvider {
   Future<BalanceInfo> getBalance() async {
     try {
       final uri = Uri.parse(_checkUrl);
-      final resp = type == ProviderType.googleAI
-          ? await http.get(uri)
-          : await http.get(uri, headers: headers);
+      final resp = await http.get(uri, headers: headers);
 
       final valid = resp.statusCode != 401 && resp.statusCode != 403;
 
@@ -97,7 +97,7 @@ class StubProvider extends AIProvider {
   String get _checkUrl {
     switch (type) {
       case ProviderType.googleAI:
-        return '$baseUrl/v1beta/models?key=${config.apiKey}';
+        return '$baseUrl/v1beta/models';
       case ProviderType.xai:
         return '$baseUrl/v1/models';
       case ProviderType.cohere:
@@ -133,7 +133,7 @@ class StubProvider extends AIProvider {
   String get _modelsUrl {
     switch (type) {
       case ProviderType.googleAI:
-        return '$baseUrl/v1beta/models?key=${config.apiKey}';
+        return '$baseUrl/v1beta/models';
       case ProviderType.cohere: // /check-api-key, not a model list
         return '';
       case ProviderType.perplexity: // /chat/completions, not a model list
