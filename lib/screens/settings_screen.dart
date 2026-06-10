@@ -516,6 +516,7 @@ class _CloudSyncSectionState extends State<_CloudSyncSection> {
               // URL field
               TextField(
                 controller: _urlController,
+                onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
                   labelText: 'Project URL',
                   hintText: 'https://xxxxxxxxxxxx.supabase.co',
@@ -537,6 +538,7 @@ class _CloudSyncSectionState extends State<_CloudSyncSection> {
               // Anon key field
               TextField(
                 controller: _keyController,
+                onChanged: (_) => setState(() {}),
                 obscureText: !_showKey,
                 decoration: InputDecoration(
                   labelText: 'Publishable Key',
