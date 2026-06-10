@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-17.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-|[![Version](https://img.shields.io/badge/version-2.0.2-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+|[![Version](https://img.shields.io/badge/version-2.0.3-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 [![macOS](https://img.shields.io/badge/macOS-13.0+-000000?logo=apple)](https://apple.com/macos)
 [![Web](https://img.shields.io/badge/web-live-4285F4?logo=googlechrome)](https://jphermans.github.io/ai-balance-tracker)
 
@@ -589,6 +589,9 @@ These are baked into the app at build time via `--dart-define`.
 End users can still override them from Settings → Cloud Sync.
 
 ## Version History
+
+### v2.0.3
+- **CI web deploy (#42)** — auto-build and deploy web version to GitHub Pages on every push to main and every release tag
 
 ### v2.0.2
 - **PIN lock disabled on web** — skip PIN setup/unlock screens on web platform (no secure storage)
