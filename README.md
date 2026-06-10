@@ -249,7 +249,7 @@ git push -f origin gh-pages
 | Supabase sync | ✅ | ✅ |
 | All 22 providers | ✅ | ✅ |
 
-**Storage note:** On web, API keys are stored in browser localStorage — not encrypted like iOS Keychain. Only use the web version on trusted devices.
+**Storage note:** On web, API keys are stored in browser localStorage — not encrypted like iOS Keychain. Only use the web version on trusted devices. Your Supabase config is isolated to your browser — other visitors to the same web app cannot see your saved URL or key.
 
 ## Getting Started
 
