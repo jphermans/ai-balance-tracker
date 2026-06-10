@@ -12,8 +12,9 @@ class ProviderCard extends StatelessWidget {
   const ProviderCard({super.key, required this.info, this.onDetailTap});
 
   Future<void> _openWebsite(BuildContext context) async {
+    final typeName = info.providerId.split('_').first;
     final type = ProviderType.values.firstWhere(
-      (t) => t.name == info.providerId,
+      (t) => t.name == typeName,
       orElse: () => ProviderType.openai,
     );
     final url = type.websiteUrl;
