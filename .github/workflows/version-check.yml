@@ -1,0 +1,16 @@
+name: Version Labels Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    name: Verify version consistency
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check version labels match
+        run: bash scripts/sync_version.sh --check
