@@ -392,6 +392,8 @@ class _ProviderDetailScreenState extends ConsumerState<ProviderDetailScreen> {
         return '/v1/users/me/balance';
       case ProviderType.qwen:
         return '/v1/models';
+      case ProviderType.minimax:
+        return '/anthropic/v1/models';
       default:
         return '/v1/models';
     }

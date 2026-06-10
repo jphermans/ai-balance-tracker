@@ -90,7 +90,8 @@ enum ProviderType {
   huggingface,
   sambanova,
   ai21,
-  qwen;
+  qwen,
+  minimax;
 
   String get displayName {
     switch (this) {
@@ -136,6 +137,8 @@ enum ProviderType {
         return 'AI21 Labs';
       case ProviderType.qwen:
         return 'Qwen (Alibaba)';
+      case ProviderType.minimax:
+        return 'MiniMax';
     }
   }
 
@@ -183,6 +186,8 @@ enum ProviderType {
         return 'https://api.ai21.com';
       case ProviderType.qwen:
         return 'https://dashscope-intl.aliyuncs.com/compatible-mode';
+      case ProviderType.minimax:
+        return 'https://api.minimax.io';
     }
   }
 
@@ -198,6 +203,8 @@ enum ProviderType {
       case ProviderType.moonshot:
       case ProviderType.qwen:
         return true;
+      case ProviderType.minimax:
+        return false;
       default:
         return false;
     }

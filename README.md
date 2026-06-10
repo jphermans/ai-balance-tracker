@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-17.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.15.1-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+|[![Version](https://img.shields.io/badge/version-1.16.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 [![macOS](https://img.shields.io/badge/macOS-13.0+-000000?logo=apple)](https://apple.com/macos)
 
 ## Features
@@ -13,8 +13,8 @@
 - **Unified Dashboard** — View balances from all your AI providers in one place
 - **Auto-Refresh on Launch** — Balances load automatically when the app starts
 - **Offline Banner** — Orange banner warns when device has no network connection
-- **10 providers with full balance tracking** — OpenAI, Anthropic, DeepSeek, OpenRouter, Together AI, Groq, SiliconFlow, Kimi, Moonshot
-- **22 providers total** — 13 use key validation, 2 added: Qwen (Alibaba Cloud), Moonshot
+- **9 providers with full balance tracking** — OpenAI, Anthropic, DeepSeek, OpenRouter, Together AI, Groq, SiliconFlow, Kimi, Moonshot
+- **23 providers total** — 13 use key validation, added: Qwen (Alibaba Cloud), Kimi/Moonshot, MiniMax
 - **Spending History Chart** — 7/30/90-day balance snapshots with interactive line chart and touch tooltips
 - **CSV Export** — Export provider data and spending history via share sheet
 - **Color-Coded Provider Cards** — Green/orange/red balance threshold indicators (≥10/≥5/<5)
@@ -59,6 +59,7 @@
 | Hugging Face | ❌ | ✅ |
 | SambaNova | ❌ | ✅ |
 | AI21 Labs | ❌ | ✅ |
+| MiniMax | ❌ | ✅ |
 
 ✅ Full balance tracking &nbsp;&nbsp; ⚠️ Key validation only (shown on card) &nbsp;&nbsp; ❌ Key validation only
 
@@ -81,7 +82,7 @@ lib/
 │   ├── balance_snapshot.dart     # Timestamped balance for spending history
 │   ├── usage_info.dart          # Usage statistics model
 │   ├── model_info.dart          # Model metadata (pricing, context, capabilities)
-│   └── provider_config.dart     # Provider configuration + 19 provider types
+│   └── provider_config.dart     # Provider configuration + 22 provider types
 ├── providers/
 │   ├── ai_provider.dart         # Abstract base class
 │   ├── openai_provider.dart     # /v1/dashboard/billing/credit_grants
@@ -93,6 +94,7 @@ lib/
 │   ├── siliconflow_provider.dart # /v1/user/info
 │   ├── moonshot_provider.dart   # Kimi api.moonshot.ai/v1/users/me/balance
 │   ├── qwen_provider.dart       # Qwen dashscope /compatible-mode/v1/models
+│   ├── minimax_provider.dart    # MiniMax api.minimax.io X-Api-Key auth
 │   ├── stub_provider.dart       # Key validation for 10 other providers
 │   └── provider_registry.dart   # Provider → adapter mapping
 ├── services/
@@ -543,6 +545,11 @@ These are baked into the app at build time via `--dart-define`.
 End users can still override them from Settings → Cloud Sync.
 
 ## Version History
+
+### v1.16.0
+- **MiniMax provider** — api.minimax.io with X-Api-Key auth, Anthropic-compatible models endpoint
+- 8 MiniMax models with pricing (MiniMax-M3, M2.7, M2.5, M2.1, M2 + highspeed variants)
+- No public balance API — key validation only
 
 ### v1.15.1
 - **Merge logic fix** — realtime merge (cloudWins) now returns only cloud entries instead of preserving stale local-only ghosts. Deleted providers no longer reappear after sync.

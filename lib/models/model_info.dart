@@ -116,6 +116,15 @@ class ModelInfo {
     'qwen2.5-7b-instruct': _ModelPricing(input: 0.10, output: 0.40, ctx: 131072),
     'qwen-coder-plus': _ModelPricing(input: 0.80, output: 2.00, ctx: 131072),
     'qwen-coder-turbo': _ModelPricing(input: 0.30, output: 0.60, ctx: 131072),
+    // MiniMax
+    'MiniMax-M3': _ModelPricing(input: 0.30, output: 1.20, ctx: 1000000),
+    'MiniMax-M2.7': _ModelPricing(input: 0.30, output: 1.20, ctx: 204800),
+    'MiniMax-M2.7-highspeed': _ModelPricing(input: 0.60, output: 2.40, ctx: 204800),
+    'MiniMax-M2.5': _ModelPricing(input: 0.30, output: 1.20, ctx: 204800),
+    'MiniMax-M2.5-highspeed': _ModelPricing(input: 0.60, output: 2.40, ctx: 204800),
+    'MiniMax-M2.1': _ModelPricing(input: 0.30, output: 1.20, ctx: 204800),
+    'MiniMax-M2.1-highspeed': _ModelPricing(input: 0.60, output: 2.40, ctx: 204800),
+    'MiniMax-M2': _ModelPricing(input: 0.30, output: 1.20, ctx: 204800),
   };
 }
 
