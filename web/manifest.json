@@ -1,11 +1,11 @@
 {
-    "name": "ai_balance_tracker",
-    "short_name": "ai_balance_tracker",
+    "name": "AI Balance Tracker",
+    "short_name": "AI Balance",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Securely monitor credits, usage, and funds across all your AI providers.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

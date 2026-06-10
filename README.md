@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.44+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-17.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-|[![Version](https://img.shields.io/badge/version-3.1.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+|[![Version](https://img.shields.io/badge/version-3.1.1-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 [![macOS](https://img.shields.io/badge/macOS-13.0+-000000?logo=apple)](https://apple.com/macos)
 [![Web](https://img.shields.io/badge/web-live-4285F4?logo=googlechrome)](https://jphermans.github.io/ai-balance-tracker)
 
