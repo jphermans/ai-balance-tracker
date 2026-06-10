@@ -18,6 +18,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   String _searchQuery = '';
   bool _initialRefreshDone = false;
   final _refreshingIds = <String>{};
+  ProviderSubscription<dynamic>? _providersSubscription;
 
   @override
   void initState() {
@@ -27,6 +28,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     });
   }
 
+  @override
+  void dispose() {
+    _providersSubscription?.close();
+    super.dispose();
+  }
+
   void _autoRefreshIfReady() {
     if (_initialRefreshDone) return;
     final configs = ref.read(providersProvider);
@@ -34,7 +41,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       _initialRefreshDone = true;
       _refresh();
     } else {
-      ref.listenManual(providersProvider, (prev, next) {
+      _providersSubscription = ref.listenManual(providersProvider, (prev, next) {
         if (!_initialRefreshDone && next != null && next.isNotEmpty) {
           _initialRefreshDone = true;
           WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
