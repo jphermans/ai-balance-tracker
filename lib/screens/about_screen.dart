@@ -84,7 +84,7 @@ class AboutScreen extends StatelessWidget {
                 _TechItem(
                   icon: Icons.flutter_dash_rounded,
                   label: 'Framework',
-                  value: 'Flutter 3.38+',
+                  value: 'Flutter 3.44+',
                 ),
                 _Divider(),
                 _TechItem(

@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/pin_service.dart';
@@ -159,7 +159,7 @@ class _PinUnlockScreenState extends State<PinUnlockScreen> {
       );
 
     return Scaffold(
-      body: !kIsWeb
+      body: (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS)
           ? body
           : Focus(
               autofocus: true,
