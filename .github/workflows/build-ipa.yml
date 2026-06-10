@@ -32,6 +32,9 @@ jobs:
         continue-on-error: true
         run: flutter analyze --no-fatal-warnings --no-fatal-infos
 
+      - name: CocoaPods install
+        run: cd ios && pod install
+
       - name: Build unsigned .app
         run: flutter build ios --no-codesign --release --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
 
@@ -81,6 +84,10 @@ jobs:
       - name: Flutter pub get
         if: steps.check-secrets.outputs.has_secrets == 'true'
         run: flutter pub get
+
+      - name: CocoaPods install
+        if: steps.check-secrets.outputs.has_secrets == 'true'
+        run: cd ios && pod install
 
       - name: Decode and install Apple certificate
         if: steps.check-secrets.outputs.has_secrets == 'true'
