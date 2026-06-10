@@ -1,16 +1,18 @@
-import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Manages the optional PIN lock.
-/// Uses iOS Keychain on iOS, SharedPreferences on macOS
-/// (Keychain blocks unsigned macOS apps).
+/// Uses iOS Keychain on iOS, SharedPreferences on macOS/web
+/// (Keychain blocks unsigned macOS apps; web has no secure storage).
 class PinService {
   static const _pinKey = 'app_pin_hash';
   static final _secure = FlutterSecureStorage();
 
   static bool get _useSecure =>
-      Platform.isIOS || Platform.isAndroid;
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+       defaultTargetPlatform == TargetPlatform.android);
 
   static Future<SharedPreferences> get _prefs =>
       SharedPreferences.getInstance();

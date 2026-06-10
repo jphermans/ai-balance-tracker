@@ -1,18 +1,20 @@
 import 'dart:convert';
-import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/provider_config.dart';
 
 /// Secure/durable storage for provider configs and credentials.
-/// Uses iOS Keychain on iOS, SharedPreferences on macOS/other platforms
-/// (because Keychain blocks unsigned macOS apps).
+/// Uses iOS Keychain on iOS, SharedPreferences on macOS/web/other platforms
+/// (because Keychain blocks unsigned macOS apps, unavailable on web).
 class SecureStorageService {
   static const _providersKey = 'ai_balance_providers';
   static final _secure = FlutterSecureStorage();
 
   static bool get _useSecure =>
-      Platform.isIOS || Platform.isAndroid;
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+       defaultTargetPlatform == TargetPlatform.android);
 
   static Future<void> initialize() async {
     if (_useSecure) {

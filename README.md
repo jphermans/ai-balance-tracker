@@ -5,14 +5,15 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-17.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-|[![Version](https://img.shields.io/badge/version-1.17.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+|[![Version](https://img.shields.io/badge/version-2.0.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 [![macOS](https://img.shields.io/badge/macOS-13.0+-000000?logo=apple)](https://apple.com/macos)
+[![Web](https://img.shields.io/badge/web-live-4285F4?logo=googlechrome)](https://jphermans.github.io/ai-balance-tracker)
 
 ## Features
 
 - **Unified Dashboard** — View balances from all your AI providers in one place
 - **Auto-Refresh on Launch** — Balances load automatically when the app starts
-- **Offline Banner** — Orange banner warns when device has no network connection
+- **Web Version** — Full Flutter web build available (shared_preferences storage, CSV text export, no PIN on web)
 - **9 providers with full balance tracking** — OpenAI, Anthropic, DeepSeek, OpenRouter, Together AI, Groq, SiliconFlow, Kimi, Moonshot
 - **23 providers total** — 13 use key validation, added: Qwen (Alibaba Cloud), Kimi/Moonshot, MiniMax
 - **Spending History Chart** — 7/30/90-day balance snapshots with interactive line chart and touch tooltips
@@ -207,6 +208,49 @@ class MyProvider extends AIProvider {
 | Export | CSV + share_plus |
 | CI/CD | GitHub Actions (unsigned IPA + macOS .app) |
 | Design | Material 3 liquid glass (BackdropFilter blur) |
+
+## Web Version
+
+### Quick Start (Local)
+
+```bash
+cd ai-balance-tracker
+flutter pub get
+flutter run -d chrome          # Development with hot reload
+flutter build web               # Production build → build/web/
+```
+
+### Serve Locally
+
+```bash
+cd build/web
+python3 -m http.server 8080     # Then open http://localhost:8080
+```
+
+Or use any static file server (npx serve, etc.)
+
+### Deploy to GitHub Pages
+
+```bash
+flutter build web --base-href /ai-balance-tracker/
+cd build/web
+git init && git checkout -b gh-pages
+git add -A && git commit -m "Web deploy"
+git push -f origin gh-pages
+# Site live at: https://<user>.github.io/ai-balance-tracker/
+```
+
+### Web vs Native Differences
+
+| Feature | iOS/macOS | Web |
+|---------|-----------|-----|
+| Secure storage | Keychain | SharedPreferences (localStorage) |
+| PIN lock | ✅ Touch/keyboard | ❌ Disabled |
+| CSV export | File share sheet | Text share |
+| Supabase sync | ✅ | ✅ |
+| All 23 providers | ✅ | ✅ |
+
+**Storage note:** On web, API keys are stored in browser localStorage — not encrypted like iOS Keychain. Only use the web version on trusted devices.
 
 ## Getting Started
 
@@ -545,6 +589,13 @@ These are baked into the app at build time via `--dart-define`.
 End users can still override them from Settings → Cloud Sync.
 
 ## Version History
+
+### v2.0.0
+- **Web version (#26)** — full Flutter web build with all 23 providers
+- dart:io Platform → flutter/foundation kIsWeb/TargetPlatform (6 files fixed)
+- CSV export: file share (native) or text share (web)
+- PIN lock disabled on web; secure_storage falls back to SharedPreferences
+- Web build/serve/deploy instructions in README
 
 ### v1.17.0
 - **Card tap opens provider website (#27)** — tap a provider card to open its platform in the browser

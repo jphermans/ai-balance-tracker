@@ -1,4 +1,4 @@
-import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -261,7 +261,7 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen>
         ),
       );
 
-    final body = Platform.isIOS || Platform.isAndroid
+    final body = !kIsWeb
         ? scaffoldBody
         : Focus(
             autofocus: true,

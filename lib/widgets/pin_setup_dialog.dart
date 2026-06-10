@@ -1,4 +1,4 @@
-import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/pin_service.dart';
@@ -193,7 +193,7 @@ class _PinSetupDialogState extends State<PinSetupDialog> {
       ),
     );
 
-    return Platform.isIOS || Platform.isAndroid
+    return !kIsWeb
         ? dialogBody
         : Focus(
             autofocus: true,

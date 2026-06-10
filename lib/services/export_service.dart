@@ -1,7 +1,8 @@
-import 'dart:io';
 import 'package:csv/csv.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show File;
 import '../models/balance_info.dart';
 
 /// Generates and shares a CSV export of all provider balances.
@@ -26,15 +27,21 @@ class ExportService {
     }
 
     final csv = const ListToCsvConverter().convert(rows);
-    final dir = await getTemporaryDirectory();
-    final file = File(
-      '${dir.path}/ai_balance_export_${DateTime.now().millisecondsSinceEpoch}.csv',
-    );
-    await file.writeAsString(csv);
 
-    await Share.shareXFiles(
-      [XFile(file.path)],
-      text: 'AI Balance Tracker export',
-    );
+    if (kIsWeb) {
+      // Web: share as text instead of file
+      await Share.share(csv, subject: 'AI Balance Tracker export');
+    } else {
+      final dir = await getTemporaryDirectory();
+      final file = File(
+        '${dir.path}/ai_balance_export_${DateTime.now().millisecondsSinceEpoch}.csv',
+      );
+      await file.writeAsString(csv);
+
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'AI Balance Tracker export',
+      );
+    }
   }
 }
