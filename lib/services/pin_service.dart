@@ -86,7 +86,7 @@ class PinService {
   }
 
   /// Derive a 32-byte key using PBKDF2-HMAC-SHA256.
-  static Uint8List _deriveKey(String password, List<int> salt) {
+  static Uint8List _deriveKey(String password, Uint8List salt) {
     const iterations = 100000;
     const keyLength = 32;
     final derivator = PBKDF2KeyDerivator(HMac(SHA256Digest(), 64))
