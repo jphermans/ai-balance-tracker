@@ -14,14 +14,14 @@
 - **Unified Dashboard** — View balances from all your AI providers in one place
 - **Auto-Refresh on Launch** — Balances load automatically when the app starts
 - **Web Version** — Full Flutter web build available (shared_preferences storage, CSV text export, no PIN on web)
-- **9 providers with full balance tracking** — OpenAI, Anthropic, DeepSeek, OpenRouter, Together AI, Groq, SiliconFlow, Kimi, Moonshot
-- **23 providers total** — 13 use key validation, added: Qwen (Alibaba Cloud), Kimi/Moonshot, MiniMax
+- **8 providers with full balance tracking** — OpenAI, Anthropic, DeepSeek, OpenRouter, Together AI, SiliconFlow, Kimi (Moonshot), Qwen
+- **22 providers total** — 14 use key validation
 - **Spending History Chart** — 7/30/90-day balance snapshots with interactive line chart and touch tooltips
 - **CSV Export** — Export provider data and spending history via share sheet
-- **Color-Coded Provider Cards** — Green/orange/red balance threshold indicators (≥10/≥5/<5)
+- **Color-Coded Provider Cards** — Green/orange/red balance threshold indicators
 - **App Banner** — Full-width JPHsystems banner image on about screen
-- **Optional PIN Lock** — Full-screen PIN setup on first launch + polished unlock screen (stored in iOS Keychain)
-- **Secure Storage** — API keys and PIN stored in iOS Keychain, never in plain text
+- **PIN Lock** — Optional 4-digit PIN (iOS/macOS only, disabled on web)
+- **Secure Storage** — API keys and PIN stored in iOS Keychain; SharedPreferences fallback on macOS/web
 - **About Screen** — App info, tech stack, features list, GitHub links
 - **Dark & Light Mode** — Material 3 with automatic/system theme switching
 - **Provider Adapters** — Clean architecture: add new providers by implementing `AIProvider`
@@ -44,8 +44,7 @@
 | OpenRouter | ✅ | ✅ |
 | Together AI | ✅ | ✅ |
 | SiliconFlow | ✅ | ✅ |
-| Kimi | ✅ | ✅ |
-| Moonshot | ✅ | ✅ |
+| Kimi (Moonshot) | ✅ | ✅ |
 | Qwen (Alibaba) | ❌ | ✅ |
 | Groq | ⚠️ | ✅ |
 | Google AI Studio | ❌ | ✅ |
@@ -196,7 +195,7 @@ class MyProvider extends AIProvider {
 
 | Layer | Technology |
 |-------|-----------|
-| Framework | Flutter 3.38+ (Dart) |
+| Framework | Flutter 3.44+ (Dart) |
 | State | Riverpod |
 | Navigation | GoRouter |
 | Cloud Sync | Supabase (PostgreSQL + Realtime) |
@@ -248,7 +247,7 @@ git push -f origin gh-pages
 | PIN lock | ✅ Touch/keyboard | ❌ Disabled |
 | CSV export | File share sheet | Text share |
 | Supabase sync | ✅ | ✅ |
-| All 23 providers | ✅ | ✅ |
+| All 22 providers | ✅ | ✅ |
 
 **Storage note:** On web, API keys are stored in browser localStorage — not encrypted like iOS Keychain. Only use the web version on trusted devices.
 
@@ -256,7 +255,7 @@ git push -f origin gh-pages
 
 ### Prerequisites
 
-- Flutter 3.38+
+- Flutter 3.44+
 - Xcode 16+ (for iOS builds)
 - iOS 17.0+ deployment target
 - macOS 13.0+ (for desktop builds)
