@@ -11,6 +11,7 @@ import 'add_provider_screen.dart';
 import '../services/export_service.dart';
 import '../widgets/glass_card.dart';
 import '../app_version.dart';
+import '../utils/app_reload.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -331,7 +332,7 @@ class _CloudSyncSectionState extends State<_CloudSyncSection> {
         _connected = SupabaseService.isInitialized;
         _statusText = _connected
             ? 'Connected'
-            : 'Saved — restart app to connect';
+            : kIsWeb ? 'Saved — reload page to connect' : 'Saved — restart app to connect';
       });
     } else {
       setState(() {
@@ -354,27 +355,19 @@ class _CloudSyncSectionState extends State<_CloudSyncSection> {
       _savedKey = key;
 
       if (_connected) {
-        // Already connected — just updated saved config silently
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Supabase config updated. Restart to apply changes.'),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
+        // Already connected — just updated saved config
+        _showReloadDialog(kIsWeb
+            ? 'Supabase config updated. Reload page to apply?'
+            : 'Supabase config updated. Restart to apply changes.');
       } else {
         setState(() {
-          _statusText = 'Saved — restart app to connect';
+          _statusText = kIsWeb
+              ? 'Saved — reload page to connect'
+              : 'Saved — restart app to connect';
         });
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Saved. Restart the app to connect.'),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
+        _showReloadDialog(kIsWeb
+            ? 'Config saved! Reload page to connect?'
+            : 'Saved. Restart the app to connect.');
       }
     } catch (e) {
       if (mounted) {
@@ -396,10 +389,9 @@ class _CloudSyncSectionState extends State<_CloudSyncSection> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Remove Supabase Config?'),
-        content: const Text(
-          'This will disconnect cloud sync. Your provider data stays on this device.\n\n'
-          'Restart the app after removing to apply the change.',
-        ),
+        content: Text(kIsWeb
+            ? 'This will disconnect cloud sync. Your provider data stays on this device.\n\nReload the page after removing to apply the change.'
+            : 'This will disconnect cloud sync. Your provider data stays on this device.\n\nRestart the app after removing to apply the change.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -425,19 +417,39 @@ class _CloudSyncSectionState extends State<_CloudSyncSection> {
       _keyController.clear();
       setState(() {
         _connected = false;
-        _statusText = 'Removed — restart app';
+        _statusText = kIsWeb ? 'Removed — reload page' : 'Removed — restart app';
       });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Supabase config removed. Restart to apply.'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+      _showReloadDialog(kIsWeb
+          ? 'Supabase config removed. Reload page to apply?'
+          : 'Supabase config removed. Restart to apply.');
     } finally {
       if (mounted) setState(() => _clearing = false);
     }
+  }
+
+  void _showReloadDialog(String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cloud Sync'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Later'),
+          ),
+          if (kIsWeb)
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                reloadApp();
+              },
+              child: const Text('Reload Now'),
+            ),
+        ],
+      ),
+    );
   }
 
   @override
