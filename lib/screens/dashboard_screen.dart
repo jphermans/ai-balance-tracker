@@ -35,7 +35,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     } else {
       // Providers not loaded yet — listen for them
       ref.listenManual(providersProvider, (prev, next) {
-        if (!_initialRefreshDone && next.isNotEmpty) {
+        if (!_initialRefreshDone && next != null && next.isNotEmpty) {
           _initialRefreshDone = true;
           // Defer so we don't modify state during build
           WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());

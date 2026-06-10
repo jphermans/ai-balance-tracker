@@ -26,22 +26,20 @@ class ExportService {
       ]);
     }
 
-    final csv = const ListToCsvConverter().convert(rows);
+    final csv = Csv().asCodec().encode(rows);
 
     if (kIsWeb) {
-      // Web: share as text instead of file
-      await Share.share(csv, subject: 'AI Balance Tracker export');
+      await SharePlus.instance.share(ShareParams(text: csv));
     } else {
       final dir = await getTemporaryDirectory();
       final file = File(
         '${dir.path}/ai_balance_export_${DateTime.now().millisecondsSinceEpoch}.csv',
       );
       await file.writeAsString(csv);
-
-      await Share.shareXFiles(
-        [XFile(file.path)],
+      await SharePlus.instance.share(ShareParams(
+        files: [XFile(file.path)],
         text: 'AI Balance Tracker export',
-      );
+      ));
     }
   }
 }
