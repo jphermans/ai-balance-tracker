@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../state/app_state.dart';
 import '../models/balance_info.dart';
+import '../models/provider_config.dart';
 import '../widgets/provider_card.dart';
 import '../widgets/glass_card.dart';
 
@@ -16,11 +17,11 @@ class DashboardScreen extends ConsumerStatefulWidget {
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   String _searchQuery = '';
   bool _initialRefreshDone = false;
+  final _refreshingIds = <String>{};
 
   @override
   void initState() {
     super.initState();
-    // Defer refresh until after first frame to ensure providers are loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _autoRefreshIfReady();
     });
@@ -33,11 +34,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       _initialRefreshDone = true;
       _refresh();
     } else {
-      // Providers not loaded yet — listen for them
       ref.listenManual(providersProvider, (prev, next) {
         if (!_initialRefreshDone && next != null && next.isNotEmpty) {
           _initialRefreshDone = true;
-          // Defer so we don't modify state during build
           WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
         }
       });
@@ -48,6 +47,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final configs = ref.read(providersProvider);
     if (configs.isNotEmpty) {
       await ref.read(balancesProvider.notifier).refreshAll(configs);
+    }
+  }
+
+  Future<void> _refreshOne(ProviderConfig config) async {
+    setState(() => _refreshingIds.add(config.id));
+    try {
+      await ref.read(balancesProvider.notifier).refreshOne(config);
+    } finally {
+      if (mounted) setState(() => _refreshingIds.remove(config.id));
     }
   }
 
@@ -71,12 +79,21 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return entries;
   }
 
+  String _formatTimestamp(DateTime dt) {
+    final diff = DateTime.now().difference(dt);
+    if (diff.inSeconds < 60) return 'just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    return '${diff.inDays}d ago';
+  }
+
   @override
   Widget build(BuildContext context) {
     final balances = ref.watch(balancesProvider);
     final isLoading = ref.watch(isLoadingProvider);
     final isOffline = ref.watch(isOfflineProvider);
     final providers = ref.watch(providersProvider);
+    final lastRefreshed = ref.watch(lastRefreshedProvider);
     final theme = Theme.of(context);
 
     final filtered = _filteredBalances(balances);
@@ -192,6 +209,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         ),
                       ),
                     ),
+                  // Last refreshed timestamp (Issue #41)
+                  if (lastRefreshed != null)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                        child: Center(
+                          child: Text(
+                            'Last refreshed ${_formatTimestamp(lastRefreshed!)}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant
+                                  .withValues(alpha: 0.6),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   // Provider cards
                   if (filtered.isEmpty && !isLoading)
                     SliverFillRemaining(
@@ -233,12 +266,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         delegate: SliverChildBuilderDelegate(
                           (context, index) {
                             final entry = filtered[index];
+                            final config = providers.firstWhere(
+                              (p) => p.id == entry.key,
+                              orElse: () => providers.first,
+                            );
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 12),
                               child: ProviderCard(
                                 info: entry.value,
                                 onDetailTap: () =>
                                     context.push('/provider/${entry.key}'),
+                                onRefresh: () => _refreshOne(config),
+                                refreshing: _refreshingIds.contains(entry.key),
                               ),
                             );
                           },

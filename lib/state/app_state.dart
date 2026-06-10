@@ -62,6 +62,7 @@ class BalancesNotifier extends StateNotifier<Map<String, BalanceInfo>> {
   BalancesNotifier() : super({});
 
   bool _loading = false;
+  DateTime? lastRefreshedAt;
 
   bool get isLoading => _loading;
 
@@ -81,6 +82,7 @@ class BalancesNotifier extends StateNotifier<Map<String, BalanceInfo>> {
         }
       }
       state = map;
+      lastRefreshedAt = DateTime.now();
       WidgetDataService.updateFromBalances(map);
     } finally {
       _loading = false;
@@ -91,6 +93,7 @@ class BalancesNotifier extends StateNotifier<Map<String, BalanceInfo>> {
     final balance = await BalanceService.refreshProvider(config);
     final newState = {...state, balance.providerId: balance};
     state = newState;
+    lastRefreshedAt = DateTime.now();
     WidgetDataService.updateFromBalances(newState);
     if (balance.supportsBalance) {
       HistoryService.recordSnapshot(
@@ -159,6 +162,12 @@ final pinProvider = StateNotifierProvider<PinNotifier, bool>((ref) {
 
 final isLoadingProvider = Provider<bool>((ref) {
   return ref.watch(balancesProvider.notifier).isLoading;
+});
+
+final lastRefreshedProvider = Provider<DateTime?>((ref) {
+  return ref.watch(balancesProvider).isEmpty
+      ? null
+      : ref.read(balancesProvider.notifier).lastRefreshedAt;
 });
 
 /// Tracks whether the device currently has network connectivity.

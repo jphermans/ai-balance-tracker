@@ -8,8 +8,16 @@ import 'glass_card.dart';
 class ProviderCard extends StatelessWidget {
   final BalanceInfo info;
   final VoidCallback? onDetailTap;
+  final VoidCallback? onRefresh;
+  final bool refreshing;
 
-  const ProviderCard({super.key, required this.info, this.onDetailTap});
+  const ProviderCard({
+    super.key,
+    required this.info,
+    this.onDetailTap,
+    this.onRefresh,
+    this.refreshing = false,
+  });
 
   Future<void> _openWebsite(BuildContext context) async {
     final typeName = info.providerId.split('_').first;
@@ -99,6 +107,28 @@ class ProviderCard extends StatelessWidget {
                                 color: colorScheme.primary
                                     .withValues(alpha: 0.6),
                               ),
+                            ),
+                          ),
+                        if (onRefresh != null)
+                          GestureDetector(
+                            onTap: refreshing ? null : onRefresh,
+                            child: Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: refreshing
+                                  ? SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: colorScheme.primary,
+                                      ),
+                                    )
+                                  : Icon(
+                                      Icons.refresh_rounded,
+                                      size: 20,
+                                      color: colorScheme.primary
+                                          .withValues(alpha: 0.6),
+                                    ),
                             ),
                           ),
                         const SizedBox(width: 4),
