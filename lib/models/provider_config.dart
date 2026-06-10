@@ -209,4 +209,54 @@ enum ProviderType {
         return false;
     }
   }
+
+  /// The public website for this provider.
+  String? get websiteUrl {
+    switch (this) {
+      case ProviderType.openai:
+        return 'https://platform.openai.com';
+      case ProviderType.anthropic:
+        return 'https://console.anthropic.com';
+      case ProviderType.deepseek:
+        return 'https://platform.deepseek.com';
+      case ProviderType.googleAI:
+        return 'https://aistudio.google.com';
+      case ProviderType.openrouter:
+        return 'https://openrouter.ai';
+      case ProviderType.xai:
+        return 'https://x.ai';
+      case ProviderType.cohere:
+        return 'https://dashboard.cohere.com';
+      case ProviderType.mistral:
+        return 'https://console.mistral.ai';
+      case ProviderType.together:
+        return 'https://api.together.xyz';
+      case ProviderType.fireworks:
+        return 'https://fireworks.ai';
+      case ProviderType.groq:
+        return 'https://console.groq.com';
+      case ProviderType.perplexity:
+        return 'https://www.perplexity.ai';
+      case ProviderType.novita:
+        return 'https://novita.ai';
+      case ProviderType.siliconflow:
+        return 'https://siliconflow.cn';
+      case ProviderType.moonshot:
+        return 'https://platform.moonshot.ai';
+      case ProviderType.cerebras:
+        return 'https://cloud.cerebras.ai';
+      case ProviderType.replicate:
+        return 'https://replicate.com';
+      case ProviderType.huggingface:
+        return 'https://huggingface.co';
+      case ProviderType.sambanova:
+        return 'https://cloud.sambanova.ai';
+      case ProviderType.ai21:
+        return 'https://studio.ai21.com';
+      case ProviderType.qwen:
+        return 'https://bailian.console.aliyun.com';
+      case ProviderType.minimax:
+        return 'https://platform.minimax.io';
+    }
+  }
 }

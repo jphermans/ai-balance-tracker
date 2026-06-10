@@ -237,7 +237,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               padding: const EdgeInsets.only(bottom: 12),
                               child: ProviderCard(
                                 info: entry.value,
-                                onTap: () =>
+                                onDetailTap: () =>
                                     context.push('/provider/${entry.key}'),
                               ),
                             );

@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-17.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-|[![Version](https://img.shields.io/badge/version-1.16.1-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+|[![Version](https://img.shields.io/badge/version-1.17.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 [![macOS](https://img.shields.io/badge/macOS-13.0+-000000?logo=apple)](https://apple.com/macos)
 
 ## Features
@@ -545,6 +545,12 @@ These are baked into the app at build time via `--dart-define`.
 End users can still override them from Settings → Cloud Sync.
 
 ## Version History
+
+### v1.17.0
+- **Card tap opens provider website (#27)** — tap a provider card to open its platform in the browser
+- Info icon (i) on each card navigates to the detail screen instead
+- All 22 providers have website URLs configured in ProviderType
+- Snackbar feedback when a provider has no website
 
 ### v1.16.1
 - **About screen fixes (#25, #28)** — text overflow fixed on small screens (tech items wrap vertically)

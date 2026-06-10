@@ -1,13 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/balance_info.dart';
+import '../models/provider_config.dart';
 import '../theme/app_theme.dart';
 import 'glass_card.dart';
 
 class ProviderCard extends StatelessWidget {
   final BalanceInfo info;
-  final VoidCallback? onTap;
+  final VoidCallback? onDetailTap;
 
-  const ProviderCard({super.key, required this.info, this.onTap});
+  const ProviderCard({super.key, required this.info, this.onDetailTap});
+
+  Future<void> _openWebsite(BuildContext context) async {
+    final type = ProviderType.values.firstWhere(
+      (t) => t.name == info.providerId,
+      orElse: () => ProviderType.openai,
+    );
+    final url = type.websiteUrl;
+
+    if (url == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${info.providerName} has no public website'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+      return;
+    }
+
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not open $url'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +49,7 @@ class ProviderCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return GlassCard(
-      onTap: onTap,
+      onTap: () => _openWebsite(context),
       padding: EdgeInsets.zero,
       child: IntrinsicHeight(
         child: Row(
@@ -53,6 +87,20 @@ class ProviderCard extends StatelessWidget {
                             ),
                           ),
                         ),
+                        if (onDetailTap != null)
+                          GestureDetector(
+                            onTap: onDetailTap,
+                            child: Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: Icon(
+                                Icons.info_outline_rounded,
+                                size: 20,
+                                color: colorScheme.primary
+                                    .withValues(alpha: 0.6),
+                              ),
+                            ),
+                          ),
+                        const SizedBox(width: 4),
                         _StatusBadge(status: info.status),
                       ],
                     ),
