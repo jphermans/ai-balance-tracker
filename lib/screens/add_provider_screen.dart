@@ -66,7 +66,9 @@ class _AddProviderScreenState extends ConsumerState<AddProviderScreen> {
     setState(() => _saving = true);
     try {
       final config = ProviderConfig(
-        id: '${_selectedType!.name}_${DateTime.now().millisecondsSinceEpoch}',
+        id: _isEditing
+            ? _existing!.id
+            : '${_selectedType!.name}_${DateTime.now().millisecondsSinceEpoch}',
         type: _selectedType!,
         apiKey: _keyController.text.trim(),
         orgId: _orgController.text.trim().isEmpty

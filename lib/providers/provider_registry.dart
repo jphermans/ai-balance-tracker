@@ -46,13 +46,5 @@ class ProviderRegistry {
   }
 
   /// List of provider types that support full balance checking.
-  static const balanceProviders = {
-    ProviderType.openai,
-    ProviderType.anthropic,
-    ProviderType.deepseek,
-    ProviderType.openrouter,
-    ProviderType.together,
-    ProviderType.siliconflow,
-    ProviderType.moonshot,
-  };
+  static Set<ProviderType> get balanceProviders => ProviderType.balanceTypes;
 }

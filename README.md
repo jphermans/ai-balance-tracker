@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.44+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-17.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-|[![Version](https://img.shields.io/badge/version-3.0.3-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+|[![Version](https://img.shields.io/badge/version-3.1.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 [![macOS](https://img.shields.io/badge/macOS-13.0+-000000?logo=apple)](https://apple.com/macos)
 [![Web](https://img.shields.io/badge/web-live-4285F4?logo=googlechrome)](https://jphermans.github.io/ai-balance-tracker)
 
@@ -14,14 +14,14 @@
 - **Unified Dashboard** — View balances from all your AI providers in one place
 - **Auto-Refresh on Launch** — Balances load automatically when the app starts
 - **Web Version** — Full Flutter web build available (shared_preferences storage, CSV text export, no PIN on web)
-- **8 providers with full balance tracking** — OpenAI, Anthropic, DeepSeek, OpenRouter, Together AI, SiliconFlow, Kimi (Moonshot), Qwen
-- **22 providers total** — 14 use key validation
+- **9 providers with full balance tracking** — OpenAI, Anthropic, DeepSeek, OpenRouter, Groq, Together AI, SiliconFlow, Moonshot, MiniMax
+- **22 providers total** — 13 use key validation
 - **Spending History Chart** — 7/30/90-day balance snapshots with interactive line chart and touch tooltips
 - **CSV Export** — Export provider data and spending history via share sheet
 - **Color-Coded Provider Cards** — Green/orange/red balance threshold indicators
 - **App Banner** — Full-width JPHsystems banner image on about screen
 - **PIN Lock** — Optional 4-digit PIN (iOS/macOS only, disabled on web)
-- **Secure Storage** — API keys and PIN stored in iOS Keychain; SharedPreferences fallback on macOS/web
+- **Secure Storage** — API keys in iOS Keychain; PBKDF2 PIN hashing; AES-256-GCM cloud encryption
 - **About Screen** — App info, tech stack, features list, GitHub links
 - **Dark & Light Mode** — Material 3 with automatic/system theme switching
 - **Provider Adapters** — Clean architecture: add new providers by implementing `AIProvider`
@@ -45,9 +45,9 @@
 | Together AI | ✅ | ✅ |
 | SiliconFlow | ✅ | ✅ |
 | Kimi (Moonshot) | ✅ | ✅ |
-| Qwen (Alibaba) | ❌ | ✅ |
-| Groq | ⚠️ | ✅ |
-| Google AI Studio | ❌ | ✅ |
+|| Qwen (Alibaba) | ❌ | ✅ |
+|| Groq | ✅ | ✅ |
+|| Google AI Studio | ❌ | ✅ |
 | xAI | ❌ | ✅ |
 | Cohere | ❌ | ✅ |
 | Mistral AI | ❌ | ✅ |
@@ -59,9 +59,9 @@
 | Hugging Face | ❌ | ✅ |
 | SambaNova | ❌ | ✅ |
 | AI21 Labs | ❌ | ✅ |
-| MiniMax | ❌ | ✅ |
+|| MiniMax | ✅ | ✅ |
 
-✅ Full balance tracking &nbsp;&nbsp; ⚠️ Key validation only (shown on card) &nbsp;&nbsp; ❌ Key validation only
+✅ Full balance tracking &nbsp;&nbsp; ❌ Key validation only
 
 ## Architecture
 
@@ -199,8 +199,9 @@ class MyProvider extends AIProvider {
 | State | Riverpod |
 | Navigation | GoRouter |
 | Cloud Sync | Supabase (PostgreSQL + Realtime) |
-| Credential Storage | flutter_secure_storage (iOS Keychain) |
+| Credential Storage | flutter_secure_storage (iOS Keychain), SharedPreferences (macOS/web) |
 | Local Storage | SharedPreferences |
+| Security | pointycastle (PBKDF2-HMAC-SHA256, AES-256-GCM) |
 | HTTP Client | dart:http |
 | Offline Detection | connectivity_plus |
 | Charts | fl_chart |

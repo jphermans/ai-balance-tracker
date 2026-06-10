@@ -93,6 +93,19 @@ enum ProviderType {
   qwen,
   minimax;
 
+  /// Provider types that support full balance checking via their API.
+  static const balanceTypes = {
+    ProviderType.openai,
+    ProviderType.anthropic,
+    ProviderType.deepseek,
+    ProviderType.openrouter,
+    ProviderType.groq,
+    ProviderType.together,
+    ProviderType.siliconflow,
+    ProviderType.moonshot,
+    ProviderType.minimax,
+  };
+
   String get displayName {
     switch (this) {
       case ProviderType.openai:
@@ -191,24 +204,7 @@ enum ProviderType {
     }
   }
 
-  bool get hasBalanceEndpoint {
-    switch (this) {
-      case ProviderType.openai:
-      case ProviderType.anthropic:
-      case ProviderType.deepseek:
-      case ProviderType.openrouter:
-      case ProviderType.groq:
-      case ProviderType.together:
-      case ProviderType.siliconflow:
-      case ProviderType.moonshot:
-      case ProviderType.qwen:
-        return true;
-      case ProviderType.minimax:
-        return false;
-      default:
-        return false;
-    }
-  }
+  bool get hasBalanceEndpoint => ProviderType.balanceTypes.contains(this);
 
   /// The public website for this provider.
   String? get websiteUrl {

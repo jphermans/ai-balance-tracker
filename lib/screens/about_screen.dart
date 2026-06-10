@@ -63,9 +63,9 @@ class AboutScreen extends StatelessWidget {
               child: Text(
                 'AI Balance Tracker securely monitors credits, usage, and '
                 'funds across all your AI providers in a unified dashboard. '
-                'Keep track of 23 AI providers with real-time balance '
-                'queries, cloud sync via Supabase, optional PIN protection, '
-                'and keychain-secured credentials.',
+                'Keep track of 22 AI providers with real-time balance '
+                'queries, AES-256-GCM encrypted cloud sync via Supabase, '
+                'PBKDF2 PIN protection, and keychain-secured credentials.',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurface,
                   height: 1.5,
@@ -108,7 +108,19 @@ class AboutScreen extends StatelessWidget {
                 _TechItem(
                   icon: Icons.security_rounded,
                   label: 'Credential Storage',
-                  value: 'iOS Keychain (flutter_secure_storage)',
+                  value: 'iOS Keychain / macOS SharedPreferences',
+                ),
+                _Divider(),
+                _TechItem(
+                  icon: Icons.enhanced_encryption_rounded,
+                  label: 'PIN Hashing',
+                  value: 'PBKDF2-HMAC-SHA256 (100k iter.)',
+                ),
+                _Divider(),
+                _TechItem(
+                  icon: Icons.shield_rounded,
+                  label: 'Cloud Encryption',
+                  value: 'AES-256-GCM (pointycastle)',
                 ),
                 _Divider(),
                 _TechItem(
@@ -159,11 +171,10 @@ class AboutScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  _FeatureBullet(theme, '23 AI providers — 9 with full balance tracking'),
-                  _FeatureBullet(theme, 'Cross-device sync via Supabase (iOS ↔ macOS)'),
+                  _FeatureBullet(theme, '22 AI providers — 9 with full balance tracking'),
+                  _FeatureBullet(theme, 'AES-256-GCM encrypted cross-device sync via Supabase'),
                   _FeatureBullet(theme, 'Native macOS desktop app with custom icon'),
-                  _FeatureBullet(theme, 'Optional 4-digit PIN lock'),
-                  _FeatureBullet(theme, 'iOS Keychain-backed secure storage'),
+                  _FeatureBullet(theme, 'iOS Keychain + PBKDF2 PIN lock + AES-256-GCM sync encryption'),
                   _FeatureBullet(theme, 'Dark/light/system theme (liquid glass design)'),
                   _FeatureBullet(theme, 'Spending history chart (7/30/90 day)'),
                   _FeatureBullet(theme, 'Unsigned IPA + macOS builds via GitHub Actions'),
