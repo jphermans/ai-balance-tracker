@@ -15,8 +15,7 @@ class PinService {
   static bool get _useSecure =>
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.iOS ||
-       defaultTargetPlatform == TargetPlatform.android ||
-       defaultTargetPlatform == TargetPlatform.macOS);
+       defaultTargetPlatform == TargetPlatform.android);
 
   static Future<SharedPreferences> get _prefs =>
       SharedPreferences.getInstance();
