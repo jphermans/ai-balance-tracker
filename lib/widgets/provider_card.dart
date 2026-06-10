@@ -96,11 +96,12 @@ class ProviderCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                        if (onDetailTap != null)
+                        if (onDetailTap != null) ...[
+                          const SizedBox(width: 8),
                           GestureDetector(
                             onTap: onDetailTap,
                             child: Padding(
-                              padding: const EdgeInsets.all(4),
+                              padding: const EdgeInsets.all(12),
                               child: Icon(
                                 Icons.info_outline_rounded,
                                 size: 20,
@@ -109,11 +110,13 @@ class ProviderCard extends StatelessWidget {
                               ),
                             ),
                           ),
-                        if (onRefresh != null)
+                        ],
+                        if (onRefresh != null) ...[
+                          const SizedBox(width: 4),
                           GestureDetector(
                             onTap: refreshing ? null : onRefresh,
                             child: Padding(
-                              padding: const EdgeInsets.all(4),
+                              padding: const EdgeInsets.all(12),
                               child: refreshing
                                   ? SizedBox(
                                       width: 16,
@@ -131,7 +134,8 @@ class ProviderCard extends StatelessWidget {
                                     ),
                             ),
                           ),
-                        const SizedBox(width: 4),
+                        ],
+                        const SizedBox(width: 8),
                         _StatusBadge(status: info.status),
                       ],
                     ),
