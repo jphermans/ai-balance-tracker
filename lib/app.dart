@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'theme/app_theme.dart';
@@ -87,34 +88,35 @@ class _AIBalanceAppState extends ConsumerState<AIBalanceApp> {
       );
     }
 
-    // After splash: first-launch PIN setup (no PIN exists yet)
-    if (!hasPin && !_pinSet) {
-      return MaterialApp(
-        title: 'AI Balance Tracker',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
-        darkTheme: AppTheme.dark,
-        themeMode: themeMode,
-        home: PinSetupScreen(
-          isOnboarding: true,
-          onSkip: () => setState(() => _pinSet = true),
-          key: ValueKey('onboarding-pin-${_pinSet}'),
-        ),
-      );
-    }
+    // After splash: PIN lock (skip on web — no secure storage)
+    if (!kIsWeb) {
+      if (!hasPin && !_pinSet) {
+        return MaterialApp(
+          title: 'AI Balance Tracker',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: themeMode,
+          home: PinSetupScreen(
+            isOnboarding: true,
+            onSkip: () => setState(() => _pinSet = true),
+            key: ValueKey('onboarding-pin-${_pinSet}'),
+          ),
+        );
+      }
 
-    // After splash: check PIN unlock
-    if (hasPin && !_unlocked) {
-      return MaterialApp(
-        title: 'AI Balance Tracker',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
-        darkTheme: AppTheme.dark,
-        themeMode: themeMode,
-        home: PinUnlockScreen(
-          onUnlocked: () => setState(() => _unlocked = true),
-        ),
-      );
+      if (hasPin && !_unlocked) {
+        return MaterialApp(
+          title: 'AI Balance Tracker',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: themeMode,
+          home: PinUnlockScreen(
+            onUnlocked: () => setState(() => _unlocked = true),
+          ),
+        );
+      }
     }
 
     final router = ref.watch(_routerProvider);

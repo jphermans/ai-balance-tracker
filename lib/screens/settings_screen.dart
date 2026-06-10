@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../state/app_state.dart';
@@ -59,31 +60,33 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // Security
-          GlassSectionLabel('SECURITY'),
-          GlassCard(
-            padding: EdgeInsets.zero,
-            child: ListTile(
-              leading: Icon(
-                hasPin ? Icons.lock_rounded : Icons.lock_open_rounded,
-                color: hasPin ? theme.colorScheme.primary : null,
-              ),
-              title: const Text('PIN Lock'),
-              subtitle: Text(hasPin ? 'Enabled' : 'Not set'),
-              trailing: hasPin
-                  ? TextButton(
-                      onPressed: () => _confirmRemovePin(context, ref),
-                      child: Text(
-                        'Remove',
-                        style: TextStyle(color: theme.colorScheme.error),
+          if (!kIsWeb) ...[
+            GlassSectionLabel('SECURITY'),
+            GlassCard(
+              padding: EdgeInsets.zero,
+              child: ListTile(
+                leading: Icon(
+                  hasPin ? Icons.lock_rounded : Icons.lock_open_rounded,
+                  color: hasPin ? theme.colorScheme.primary : null,
+                ),
+                title: const Text('PIN Lock'),
+                subtitle: Text(hasPin ? 'Enabled' : 'Not set'),
+                trailing: hasPin
+                    ? TextButton(
+                        onPressed: () => _confirmRemovePin(context, ref),
+                        child: Text(
+                          'Remove',
+                          style: TextStyle(color: theme.colorScheme.error),
+                        ),
+                      )
+                    : FilledButton.tonal(
+                        onPressed: () => context.push('/pin-setup'),
+                        child: const Text('Set PIN'),
                       ),
-                    )
-                  : FilledButton.tonal(
-                      onPressed: () => context.push('/pin-setup'),
-                      child: const Text('Set PIN'),
-                    ),
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
+            const SizedBox(height: 24),
+          ],
 
           // Cloud Sync
           const _CloudSyncSection(),
