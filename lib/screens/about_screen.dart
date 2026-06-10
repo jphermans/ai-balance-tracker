@@ -63,7 +63,7 @@ class AboutScreen extends StatelessWidget {
               child: Text(
                 'AI Balance Tracker securely monitors credits, usage, and '
                 'funds across all your AI providers in a unified dashboard. '
-                'Keep track of 22+ API providers with real-time balance '
+                'Keep track of 23 AI providers with real-time balance '
                 'queries, cloud sync via Supabase, optional PIN protection, '
                 'and keychain-secured credentials.',
                 style: theme.textTheme.bodyMedium?.copyWith(
@@ -159,7 +159,7 @@ class AboutScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  _FeatureBullet(theme, '22+ AI providers — 10 with full balance tracking'),
+                  _FeatureBullet(theme, '23 AI providers — 9 with full balance tracking'),
                   _FeatureBullet(theme, 'Cross-device sync via Supabase (iOS ↔ macOS)'),
                   _FeatureBullet(theme, 'Native macOS desktop app with custom icon'),
                   _FeatureBullet(theme, 'Optional 4-digit PIN lock'),
@@ -191,6 +191,21 @@ class AboutScreen extends StatelessWidget {
                   ),
                   trailing: const Icon(Icons.open_in_new_rounded, size: 18),
                   onTap: () => _openUrl(_repoUrl),
+                ),
+                _Divider(),
+                ListTile(
+                  leading: Icon(
+                    Icons.menu_book_rounded,
+                    color: colorScheme.primary,
+                  ),
+                  title: const Text('Wiki'),
+                  subtitle: Text(
+                    'Documentation & guides',
+                    style: TextStyle(fontSize: 13),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: const Icon(Icons.open_in_new_rounded, size: 18),
+                  onTap: () => _openUrl('$_repoUrl/wiki'),
                 ),
                 _Divider(),
                 ListTile(
@@ -307,20 +322,33 @@ class _TechItem extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 20, color: theme.colorScheme.primary),
-          const SizedBox(width: 12),
-          Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Icon(icon, size: 20, color: theme.colorScheme.primary),
           ),
-          const Spacer(),
-          Text(
-            value,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  softWrap: true,
+                ),
+              ],
             ),
           ),
         ],

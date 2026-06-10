@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-17.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-|[![Version](https://img.shields.io/badge/version-1.16.0-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+|[![Version](https://img.shields.io/badge/version-1.16.1-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 [![macOS](https://img.shields.io/badge/macOS-13.0+-000000?logo=apple)](https://apple.com/macos)
 
 ## Features
@@ -545,6 +545,11 @@ These are baked into the app at build time via `--dart-define`.
 End users can still override them from Settings → Cloud Sync.
 
 ## Version History
+
+### v1.16.1
+- **About screen fixes (#25, #28)** — text overflow fixed on small screens (tech items wrap vertically)
+- **Wiki link** added to About screen → Links section
+- Provider count updated to 23 (9 with balance tracking)
 
 ### v1.16.0
 - **MiniMax provider** — api.minimax.io with X-Api-Key auth, Anthropic-compatible models endpoint
