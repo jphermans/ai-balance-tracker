@@ -590,6 +590,11 @@ End users can still override them from Settings → Cloud Sync.
 
 ## Version History
 
+### v3.1.2
+- **Fix #33** — removed Groq from `balanceTypes` (overrides `supportsBalance=false`); deleted stale `balanceProviders` getter
+- **About screen** — expanded tech stack to include all libraries (path_provider, url_launcher, web, intl, flutter_secure_storage)
+- **Provider counts** — 8 full balance tracking, 14 key validation (Groq moved to key-validation-only)
+
 ### v2.1.2
 - **Fix macOS keyboard PIN** — keyboard input was accidentally web-only; now works on macOS/desktop again
 - **Fix About screen** — Flutter version 3.38+ → 3.44+
