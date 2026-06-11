@@ -43,18 +43,37 @@ class _PinUnlockScreenState extends State<PinUnlockScreen> {
     // Slight delay so user sees the last dot fill in
     await Future.delayed(const Duration(milliseconds: 200));
 
-    final valid = await PinService.verifyPin(_pin);
+    final result = await PinService.verifyPin(_pin);
     if (!mounted) return;
 
-    if (valid) {
-      widget.onUnlocked();
-    } else {
-      setState(() {
-        _error = 'Incorrect PIN';
-        _pin = '';
-        _verifying = false;
-      });
+    switch (result) {
+      case PinVerifyResult.success:
+        widget.onUnlocked();
+        return;
+      case PinVerifyResult.locked:
+        final remaining = await PinService.lockoutRemaining();
+        if (!mounted) return;
+        setState(() {
+          _error = 'Too many attempts. Try again in '
+              '${_formatLockout(remaining)}.';
+          _pin = '';
+          _verifying = false;
+        });
+        return;
+      case PinVerifyResult.wrong:
+        setState(() {
+          _error = 'Incorrect PIN';
+          _pin = '';
+          _verifying = false;
+        });
+        return;
     }
+  }
+
+  String _formatLockout(Duration d) {
+    if (d.inHours >= 1) return '${d.inHours}h';
+    if (d.inMinutes >= 1) return '${d.inMinutes}m';
+    return '${d.inSeconds}s';
   }
 
   @override

@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.44+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-17.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-|[![Version](https://img.shields.io/badge/version-3.1.2-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+|[![Version](https://img.shields.io/badge/version-3.1.3-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 [![macOS](https://img.shields.io/badge/macOS-13.0+-000000?logo=apple)](https://apple.com/macos)
 [![Web](https://img.shields.io/badge/web-live-4285F4?logo=googlechrome)](https://jphermans.github.io/ai-balance-tracker)
 
@@ -555,8 +555,9 @@ The app includes an optional 4-digit PIN lock with a polished setup flow:
 ## Security
 
 - API keys and PIN stored in **iOS Keychain** via `flutter_secure_storage`
-- PIN is hashed before storage (not plaintext)
-- No credentials in SharedPreferences, logs, or crash reports
+- PIN is hashed before storage (not plaintext) and protected with exponential-backoff lockout after repeated wrong attempts
+- Supabase anon key stored in Keychain on iOS/Android (not plaintext SharedPreferences)
+- No credentials in logs or crash reports
 - Sensitive values masked in UI
 - HTTPS-only API communication
 
@@ -589,6 +590,13 @@ These are baked into the app at build time via `--dart-define`.
 End users can still override them from Settings → Cloud Sync.
 
 ## Version History
+
+### v3.1.3
+- **Security fixes (issue #43)**
+  - **#1 PIN brute-force protection** — exponential backoff lockout after 5 wrong attempts (5s, 30s, 1m, 5m, 15m, 1h, 4h, 24h capped); defensive wipe after 20 consecutive failures; new `PinVerifyResult` enum surfaced in the UI with "Too many attempts. Try again in Xs." messages
+  - **#3 Supabase anon key secure storage** — anon key now persisted in iOS Keychain / Android EncryptedSharedPreferences on those platforms (plaintext SharedPreferences was recoverable from disk); SharedPreferences kept as fallback for macOS/web/Linux and auto-cleans on upgrade
+  - **#8 Decrypt crash on malformed rows** — `EncryptionService.tryDecrypt()` returns `null` on any failure (bad base64, wrong IV length, GCM auth mismatch) instead of throwing; `SyncService` skips + logs bad rows so a single corrupted Supabase row no longer kills startup; pre-existing GCM buffer-trim bug in `encrypt()` also fixed
+- **Test coverage** — added 22 unit tests across the three services (encryption round-trip + failure modes, PIN lockout + reset, anon-key storage + upgrade path). Coverage rose from ~9% of files to ~16%.
 
 ### v3.1.2
 - **Fix #33** — removed Groq from `balanceTypes` (overrides `supportsBalance=false`); deleted stale `balanceProviders` getter

@@ -265,12 +265,19 @@ class SettingsScreen extends ConsumerWidget {
                     setDialogState(() => error = 'PIN must be 4 digits');
                     return;
                   }
-                  final valid = await PinService.verifyPin(pin);
-                  if (valid) {
-                    await ref.read(pinProvider.notifier).removePin();
-                    if (ctx.mounted) Navigator.pop(ctx);
-                  } else {
-                    setDialogState(() => error = 'Incorrect PIN');
+                  final result = await PinService.verifyPin(pin);
+                  if (!ctx.mounted) return;
+                  switch (result) {
+                    case PinVerifyResult.success:
+                      await ref.read(pinProvider.notifier).removePin();
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    case PinVerifyResult.wrong:
+                      setDialogState(() => error = 'Incorrect PIN');
+                    case PinVerifyResult.locked:
+                      final remaining = await PinService.lockoutRemaining();
+                      if (!ctx.mounted) return;
+                      setDialogState(() => error =
+                          'Too many attempts. Try again in ${remaining.inSeconds}s.');
                   }
                 },
                 style: FilledButton.styleFrom(

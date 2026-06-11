@@ -19,9 +19,12 @@ class SyncService {
         .select()
         .order('updated_at', ascending: false);
 
-    return (response as List<dynamic>)
-        .map((row) => _fromRow(row as Map<String, dynamic>, userId))
-        .toList();
+    final out = <ProviderConfig>[];
+    for (final row in (response as List<dynamic>)) {
+      final config = _fromRow(row as Map<String, dynamic>, userId);
+      if (config != null) out.add(config);
+    }
+    return out;
   }
 
   /// Upsert a single provider config to Supabase.
@@ -60,19 +63,43 @@ class SyncService {
     return _db
         .from('provider_configs')
         .stream(primaryKey: ['id'])
-        .map((rows) => rows
-            .map((row) => _fromRow(row, userId))
-            .toList());
+        .map((rows) {
+      final out = <ProviderConfig>[];
+      for (final row in rows) {
+        final config = _fromRow(row, userId);
+        if (config != null) out.add(config);
+      }
+      return out;
+    });
   }
 
-  static ProviderConfig _fromRow(Map<String, dynamic> row, String userId) {
+  /// Build a [ProviderConfig] from a Supabase row, or `null` if the row
+  /// can't be decrypted. We never throw from here — one bad row must not
+  /// kill the whole sync. The caller ([fetchAll], [watchChanges]) filters
+  /// out nulls and logs the skip via [debugPrint].
+  static ProviderConfig? _fromRow(Map<String, dynamic> row, String userId) {
+    // tryDecrypt returns null on any failure: malformed base64, wrong IV
+    // length, GCM authentication tag mismatch (wrong key or tampered
+    // ciphertext), or unexpected exceptions inside the cipher. See
+    // issue #43 for the original bug — before this fix, a single bad
+    // row propagated up through `fetchAll` and left the user with an
+    // empty provider list and no diagnostic.
+    final decrypted = EncryptionService.tryDecrypt(
+      row['api_key'] as String?,
+      userId,
+    );
+    if (decrypted == null) {
+      debugPrint(
+          '[Sync] skipping row ${row['provider_id']}: failed to decrypt api_key');
+      return null;
+    }
     return ProviderConfig(
       id: row['provider_id'] as String,
       type: ProviderType.values.firstWhere(
         (e) => e.name == row['type'],
         orElse: () => ProviderType.openai,
       ),
-      apiKey: EncryptionService.decrypt(row['api_key'] as String, userId),
+      apiKey: decrypted,
       orgId: row['org_id'] as String?,
       accountId: row['account_id'] as String?,
       customEndpoint: row['custom_endpoint'] as String?,
