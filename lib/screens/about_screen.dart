@@ -84,7 +84,7 @@ class AboutScreen extends StatelessWidget {
                 _TechItem(
                   icon: Icons.flutter_dash_rounded,
                   label: 'Framework',
-                  value: 'Flutter 3.44+',
+                  value: 'Flutter 3.44.1',
                 ),
                 _Divider(),
                 _TechItem(
@@ -108,7 +108,7 @@ class AboutScreen extends StatelessWidget {
                 _TechItem(
                   icon: Icons.security_rounded,
                   label: 'Credential Storage',
-                  value: 'iOS Keychain / macOS SharedPreferences',
+                  value: 'flutter_secure_storage (iOS Keychain / macOS)',
                 ),
                 _Divider(),
                 _TechItem(
@@ -154,6 +154,30 @@ class AboutScreen extends StatelessWidget {
                 ),
                 _Divider(),
                 _TechItem(
+                  icon: Icons.folder_open_rounded,
+                  label: 'File Paths',
+                  value: 'path_provider',
+                ),
+                _Divider(),
+                _TechItem(
+                  icon: Icons.open_in_browser_rounded,
+                  label: 'External Links',
+                  value: 'url_launcher',
+                ),
+                _Divider(),
+                _TechItem(
+                  icon: Icons.web_rounded,
+                  label: 'Web Platform',
+                  value: 'package:web',
+                ),
+                _Divider(),
+                _TechItem(
+                  icon: Icons.calendar_month_rounded,
+                  label: 'Date/Number Formatting',
+                  value: 'intl',
+                ),
+                _Divider(),
+                _TechItem(
                   icon: Icons.design_services_rounded,
                   label: 'Design System',
                   value: 'Material 3 (liquid glass)',
@@ -171,7 +195,7 @@ class AboutScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  _FeatureBullet(theme, '22 AI providers — 9 with full balance tracking'),
+                  _FeatureBullet(theme, '22 AI providers — 8 with full balance tracking'),
                   _FeatureBullet(theme, 'AES-256-GCM encrypted cross-device sync via Supabase'),
                   _FeatureBullet(theme, 'Native macOS desktop app with custom icon'),
                   _FeatureBullet(theme, 'iOS Keychain + PBKDF2 PIN lock + AES-256-GCM sync encryption'),

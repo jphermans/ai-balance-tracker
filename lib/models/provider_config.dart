@@ -99,7 +99,6 @@ enum ProviderType {
     ProviderType.anthropic,
     ProviderType.deepseek,
     ProviderType.openrouter,
-    ProviderType.groq,
     ProviderType.together,
     ProviderType.siliconflow,
     ProviderType.moonshot,

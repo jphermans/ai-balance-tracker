@@ -45,6 +45,4 @@ class ProviderRegistry {
     }
   }
 
-  /// List of provider types that support full balance checking.
-  static Set<ProviderType> get balanceProviders => ProviderType.balanceTypes;
 }
