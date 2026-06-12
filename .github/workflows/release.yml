@@ -1,0 +1,70 @@
+name: Release
+
+# Triggered when an iOS or macOS build finishes successfully. We do NOT
+# build on tag pushes directly — instead the build runs on main push,
+# and this workflow picks up the artifact only if a v* tag points at the
+# same SHA. Net effect: 1 build per push, not 2. Saves ~12-15 min on
+# every release (macos-14 runners, iOS + macOS in parallel).
+# Web deploys via Pages on every main push and is not part of the release
+# artifact set, so the web workflow is intentionally excluded here.
+on:
+  workflow_run:
+    workflows: ["Build iOS IPA", "Build macOS App"]
+    types: [completed]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Publish GitHub Release
+    runs-on: ubuntu-latest
+    # Only act on successful main-branch builds. PR builds never tag, and
+    # we don't want to create a release for a failed or cancelled run.
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main'
+
+    steps:
+      - name: Find v* tag pointing at this commit
+        id: find-tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          # List all v* tags, find the one whose target SHA matches this build.
+          TAG=$(gh api "repos/${{ github.repository }}/git/refs/tags" \
+            --jq ".[] | select(.object.type == \"commit\" and .object.sha == \"$SHA\") | .ref" \
+            | head -1 | sed 's|refs/tags/||')
+          if [ -z "$TAG" ]; then
+            echo "No v* tag points at $SHA — skipping release."
+            echo "has_tag=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "Tag $TAG points at $SHA — proceeding with release."
+          echo "has_tag=true" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Download build artifacts
+        if: steps.find-tag.outputs.has_tag == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+          path: artifacts
+
+      - name: Create / update GitHub release
+        if: steps.find-tag.outputs.has_tag == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.find-tag.outputs.tag }}
+          generate_release_notes: true
+          # We don't pin `files:` because the artifact set differs per
+          # workflow (iOS has .ipa, macOS has .zip, web deploys via Pages
+          # not artifacts). For now the iOS + macOS release workflow jobs
+          # attach their own artifacts. The web workflow has no release
+          # artifact (Pages is the deployment).
+          files: |
+            artifacts/**/*.ipa
+            artifacts/**/*.zip
+          fail_on_unmatched_files: false
