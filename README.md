@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.44+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-17.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-|[![Version](https://img.shields.io/badge/version-3.1.3-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+|[![Version](https://img.shields.io/badge/version-3.1.4-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 [![macOS](https://img.shields.io/badge/macOS-13.0+-000000?logo=apple)](https://apple.com/macos)
 [![Web](https://img.shields.io/badge/web-live-4285F4?logo=googlechrome)](https://jphermans.github.io/ai-balance-tracker)
 
@@ -590,6 +590,9 @@ These are baked into the app at build time via `--dart-define`.
 End users can still override them from Settings → Cloud Sync.
 
 ## Version History
+
+### v3.1.4
+- **Fix Supabase sync for new providers** — `SyncService.upsert()` now sends `user_id` and uses `onConflict: 'user_id,provider_id'` to match the actual composite unique constraint in the `provider_configs` table. Previously, `onConflict: 'provider_id'` referenced a single column that wasn't uniquely indexed, so PostgREST rejected the upsert with a 400 — and the fire-and-forget `catchError` in `HybridStorageService.saveProvider()` silently swallowed it. New providers were visible locally but never reached Supabase, so they disappeared on other devices and after reinstall. Also: `catchError` now logs failures via `debugPrint` so future sync regressions surface in `flutter logs` instead of failing silently.
 
 ### v3.1.3
 - **Security fixes (issue #43)**

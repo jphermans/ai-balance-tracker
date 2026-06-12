@@ -60,8 +60,14 @@ class HybridStorageService {
   static Future<void> saveProvider(ProviderConfig config) async {
     final updated = config.copyWith(updatedAt: DateTime.now().toUtc());
     await SecureStorageService.saveProvider(updated);
-    // Fire-and-forget cloud sync
-    SyncService.upsert(updated).catchError((_) {});
+    // Fire-and-forget cloud sync. We log on failure (instead of silently
+    // dropping the error) because that's how the onConflict bug shipped
+    // undetected — new providers never reached Supabase and the user had
+    // no idea why. Suppressed errors are fine offline; loud errors are
+    // essential when the user is online and expects sync to work.
+    SyncService.upsert(updated).catchError((e, st) {
+      debugPrint('[Hybrid] saveProvider cloud sync failed: $e');
+    });
   }
 
   /// Remove a provider: delete from local, then cloud.
