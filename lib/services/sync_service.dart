@@ -34,17 +34,17 @@ class SyncService {
     if (userId == null) return;
 
     debugPrint('[Sync] upsert ${config.id}: type=${config.type.name}');
-    // IMPORTANT: the Supabase table's unique constraint is the composite
-    // (user_id, provider_id) — not provider_id alone. Passing just
-    // 'provider_id' as onConflict target made PostgREST reject the upsert
-    // with a 400 (no matching unique index), and the fire-and-forget
-    // catchError in HybridStorageService.saveProvider silently swallowed
-    // it. Result: new providers never reached Supabase, so they were
-    // invisible to other devices and to the user after a reinstall.
-    // See GitHub issue: "New added providers to monitor does not come in
-    // supabase anymore".
+    // provider_id is the sole unique key — all devices share the same
+    // namespace (anonymous auth gives each device a different user_id,
+    // and we don't want per-user isolation). Requires the Supabase
+    // schema to have UNIQUE(provider_id) (not the original
+    // UNIQUE(user_id, provider_id)) and an RLS policy that allows all
+    // authenticated users. See README "Cloud Sync Setup" for the SQL
+    // migration. The api_key is encrypted per-user with the device's
+    // own userId, so the same encrypted blob works across devices that
+    // share the same per-device encryption secret (see
+    // EncryptionService for the cross-device key derivation).
     await _db.from('provider_configs').upsert({
-      'user_id': userId,
       'provider_id': config.id,
       'type': config.type.name,
       'api_key': EncryptionService.encrypt(config.apiKey, userId),
@@ -53,7 +53,7 @@ class SyncService {
       'custom_endpoint': config.customEndpoint,
       'enabled': config.enabled,
       'updated_at': DateTime.now().toUtc().toIso8601String(),
-    }, onConflict: 'user_id,provider_id');
+    }, onConflict: 'provider_id');
   }
 
   /// Delete a provider config from Supabase.

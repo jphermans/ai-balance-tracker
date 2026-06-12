@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app.dart';
 import 'services/supabase_config_service.dart';
 import 'services/supabase_service.dart';
+import 'services/encryption_service.dart';
 import 'services/hybrid_storage_service.dart';
 import 'services/first_launch_service.dart';
 
@@ -26,6 +27,19 @@ void main() async {
       await SupabaseService.initialize(
         url: supabaseUrl,
         anonKey: supabaseKey,
+      );
+
+      // Hand the project credentials to the encryption service BEFORE
+      // any sync runs. The encryption key is derived from these (not
+      // from the per-device anonymous user_id), which is what makes
+      // cross-device sync work — every device pointing at the same
+      // Supabase project derives the same key and can decrypt each
+      // other's API keys. If we skip this call, EncryptionService
+      // falls back to the legacy per-user-id derivation, which works
+      // locally but breaks cross-device sync.
+      EncryptionService.initialize(
+        supabaseUrl: supabaseUrl,
+        publishableKey: supabaseKey,
       );
 
       // Load providers (local + cloud merge)

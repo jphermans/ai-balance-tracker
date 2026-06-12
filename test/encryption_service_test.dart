@@ -74,6 +74,39 @@ void main() {
       expect(result, isNull);
     });
 
+    test('cross-device: same project key, different userIds round-trips', () {
+      // Simulates: device A signs in (userId=A), encrypts and uploads.
+      // Device B signs in (userId=B), downloads and decrypts. With the
+      // project-key derivation both devices can decrypt each other's
+      // data. With the legacy per-user-id derivation, this fails.
+      EncryptionService.initialize(
+        supabaseUrl: 'https://example.supabase.co',
+        publishableKey: 'sb_publishable_abc123',
+      );
+      const deviceAUserId = 'device-a-anon-user-id';
+      const deviceBUserId = 'device-b-anon-user-id';
+
+      final encrypted = EncryptionService.encrypt('sk-cross-device', deviceAUserId);
+      final decrypted = EncryptionService.tryDecrypt(encrypted, deviceBUserId);
+      expect(decrypted, 'sk-cross-device');
+    });
+
+    test('different project key fails GCM auth, returns null', () {
+      EncryptionService.initialize(
+        supabaseUrl: 'https://project-a.supabase.co',
+        publishableKey: 'sb_publishable_aaa',
+      );
+      final encrypted = EncryptionService.encrypt('sk-a', 'any-user');
+
+      // Switch to a different project's key material
+      EncryptionService.initialize(
+        supabaseUrl: 'https://project-b.supabase.co',
+        publishableKey: 'sb_publishable_bbb',
+      );
+      final decrypted = EncryptionService.tryDecrypt(encrypted, 'any-user');
+      expect(decrypted, isNull);
+    });
+
     test('deprecated decrypt() degrades null to empty string', () {
       // ignore: deprecated_member_use_from_same_package
       final result = EncryptionService.decrypt('AES256GCM:garbage', userId);

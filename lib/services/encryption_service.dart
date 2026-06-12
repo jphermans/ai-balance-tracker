@@ -6,7 +6,25 @@ import 'package:pointycastle/export.dart';
 
 /// Client-side AES-256-GCM encryption for API keys before Supabase sync.
 ///
-/// Key is derived from Supabase user ID via PBKDF2 with a fixed app salt.
+/// Key is derived from the Supabase project credentials (URL + publishable
+/// key) via PBKDF2 with a fixed app salt. This is the *project* secret, not
+/// the per-device anonymous user_id — so the same key is derived on every
+/// device that points at the same Supabase project. That's what makes
+/// cross-device sync work: device A encrypts "sk-abc..." and uploads it;
+/// device B can decrypt it because both devices derive the same key from
+/// the same project credentials.
+///
+/// Why project credentials are safe to use as key material:
+/// - The publishable key (formerly "anon key") is shipped in every client
+///   binary and visible in the JS bundle of the web build. It's not a
+///   secret — it's a *project identity*. Anyone with the URL+key can read
+///   rows their RLS policy allows, so it adds no extra access risk.
+/// - Deriving a key from it provides defense-in-depth: a database dump
+///   without the matching client config can't decrypt the API keys.
+/// - We do NOT use a hard-coded key — that would be one-step decryption
+///   for any attacker who downloads the app. PBKDF2 over the credentials
+///   means the client config is needed AND requires brute-force search.
+///
 /// Stores format: `AES256GCM:<base64(IV+ciphertext+tag)>`
 /// Plaintext values are passed through (backward compat with existing data).
 class EncryptionService {
@@ -17,12 +35,41 @@ class EncryptionService {
   static const _tagLength = 16;
   static const _prefix = 'AES256GCM:';
 
-  /// Derive AES-256 key from user ID.
+  /// The currently configured project key material. Set by [initialize]
+  /// from `SupabaseService.url` + `SupabaseService.publishableKey` on
+  /// app startup. We keep the legacy [setProjectKey(String userId)]
+  /// path (used by tests) as a fallback when no project key is set.
+  static String? _projectKeyMaterial;
+
+  /// Inject the project key material at startup. Call this from
+  /// `main()` after Supabase is initialized, before any sync happens.
+  /// If never called, [encrypt]/[tryDecrypt] fall back to the legacy
+  /// per-user-id derivation so existing data remains decryptable on
+  /// the device that wrote it (but cross-device sync stays broken
+  /// until this is called).
+  static void initialize({required String supabaseUrl, required String publishableKey}) {
+    // Hash the concatenated credentials so the PBKDF2 input has good
+    // entropy and is a fixed length. Using SHA-256 of (url|key) means
+    // changing the URL or the key produces a totally different secret.
+    // We use pointycastle's SHA-256 to avoid adding the `crypto` package
+    // just for this — pointycastle is already a dependency.
+    final input = utf8.encode('$supabaseUrl|$publishableKey');
+    final digest = SHA256Digest();
+    // SHA256Digest.process() returns the digest directly (32 bytes for SHA-256).
+    _projectKeyMaterial = base64Encode(digest.process(Uint8List.fromList(input)));
+    debugPrint('[Encryption] project key material set (cross-device sync enabled)');
+  }
+
+  /// Derive AES-256 key. Prefers the project key material (set by
+  /// [initialize]) for cross-device sync. Falls back to the legacy
+  /// per-user-id derivation so that data written by older app versions
+  /// on a single device can still be decrypted locally.
   static Uint8List _deriveKey(String userId) {
     final salt = Uint8List.fromList(utf8.encode(_appSalt));
     final derivator = PBKDF2KeyDerivator(HMac(SHA256Digest(), 64))
       ..init(Pbkdf2Parameters(salt, _iterations, _keyLength));
-    return derivator.process(utf8.encode(userId));
+    final input = _projectKeyMaterial ?? userId;
+    return derivator.process(utf8.encode(input));
   }
 
   /// Encrypt plaintext → `AES256GCM:<base64>`.

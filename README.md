@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.44+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-17.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-|[![Version](https://img.shields.io/badge/version-3.1.5-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+|[![Version](https://img.shields.io/badge/version-3.1.6-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 [![macOS](https://img.shields.io/badge/macOS-13.0+-000000?logo=apple)](https://apple.com/macos)
 [![Web](https://img.shields.io/badge/web-live-4285F4?logo=googlechrome)](https://jphermans.github.io/ai-balance-tracker)
 
@@ -320,6 +320,40 @@ CREATE POLICY "Users manage own configs" ON provider_configs
   WITH CHECK (auth.uid() = user_id);
 ```
 
+**3b. MIGRATION (existing projects only — v1.15.0+ cross-device sync)**
+
+If you ran the schema above before v1.15.0, your table has
+`UNIQUE(user_id, provider_id)` and an RLS policy that isolates by user.
+That breaks cross-device sync because anonymous auth gives each device a
+different `user_id`, so each device only sees its own rows (and the
+upsert's `onConflict: 'provider_id'` doesn't match the actual unique
+constraint, so writes fail).
+
+Run this **once** in the SQL Editor to make the table cross-device:
+
+```sql
+-- Drop per-user unique constraint; provider_id is now globally unique
+ALTER TABLE provider_configs DROP CONSTRAINT provider_configs_user_id_provider_id_key;
+
+-- Add global unique constraint on provider_id
+ALTER TABLE provider_configs ADD CONSTRAINT provider_configs_provider_id_key UNIQUE (provider_id);
+
+-- Replace RLS policy: allow all authenticated (incl. anonymous) users
+-- full access to the table. Security model: anyone with the project's
+-- publishable key has read/write; per-row encryption (AES-256-GCM keyed
+-- off the project credentials) provides defense-in-depth for API keys.
+DROP POLICY IF EXISTS "Users manage own configs" ON provider_configs;
+CREATE POLICY "Authenticated full access" ON provider_configs
+  FOR ALL TO authenticated
+  USING (true)
+  WITH CHECK (true);
+```
+
+After running this, restart every device so it re-fetches with the new
+schema. Existing rows will be merged — devices with the same
+`provider_id` will see the row from whichever device wrote it most
+recently (last-write-wins by `updated_at`).
+
 **4. Configure in the app**
 
 Open the app → Settings → **Cloud Sync** → paste your Project URL and Publishable Key → tap **Save**.
@@ -590,6 +624,11 @@ These are baked into the app at build time via `--dart-define`.
 End users can still override them from Settings → Cloud Sync.
 
 ## Version History
+
+### v3.1.6
+- **Fix cross-device sync (root cause)** — `EncryptionService` key derivation now uses the Supabase project credentials (URL + publishable key) hashed with SHA-256, instead of the per-device anonymous user_id. **This was the actual blocker for cross-device sync:** anonymous auth gives each device a different `user_id`, so the old key derivation produced a different AES-256 key on every device. Device B could never decrypt rows written by device A (GCM auth tag failed → `tryDecrypt` returned `null` → row silently dropped by `SyncService._fromRow`). Now every device pointing at the same Supabase project derives the same key and can read each other's API keys. The legacy per-user-id derivation is kept as a fallback so locally-written data from older app versions remains decryptable on the device that wrote it. Added two new unit tests: cross-device round-trip with the same project key (succeeds) and isolation between different projects (fails GCM auth). `EncryptionService.initialize(supabaseUrl, publishableKey)` is now called from `main.dart` after Supabase init and before any sync.
+- **Reverted v3.1.4 onConflict regression** — `SyncService.upsert()` no longer sends `user_id` in the payload and uses `onConflict: 'provider_id'` again. The v3.1.4 attempt to make the upsert match the old per-user unique constraint actually broke cross-device sync, which is the goal of the v1.15.0 design. The code is now back to the v1.15.0 contract: `provider_id` is the sole unique key, the user must run the migration SQL in step 3b of the README to align their Supabase schema. (The `catchError` log change from v3.1.4 stays — silent failure masking was a real bug.)
+- **README: 3b Migration SQL** — added the missing SQL migration that existing projects need to run to make their Supabase table cross-device (drop `UNIQUE(user_id, provider_id)`, add `UNIQUE(provider_id)`, replace RLS policy with `USING (true)`). Previously the v1.15.0 release notes mentioned "run SQL" but never actually shipped the SQL — the user had no way to complete the migration.
 
 ### v3.1.5
 - **CI: stop double-building on tag push (Option A)** — `build-ipa.yml`, `build-macos.yml`, and `build-web.yml` no longer trigger on `tags: ['v*']`. The build now runs only on `main` push, PR, and manual dispatch. A new `release.yml` listens for the build's `workflow_run` event and, if a `v*` tag points at the same commit SHA, downloads the artifact and creates/updates the GitHub release. Result: **1 build per push instead of 2** — saves ~12-15 min of `macos-14` runner time per release. Web deploys via GitHub Pages on every main push (unchanged).
