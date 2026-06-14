@@ -101,6 +101,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final isOffline = ref.watch(isOfflineProvider);
     final providers = ref.watch(providersProvider);
     final lastRefreshed = ref.watch(lastRefreshedProvider);
+    final syncHealth = ref.watch(syncHealthProvider);
     final theme = Theme.of(context);
 
     final filtered = _filteredBalances(balances);
@@ -156,6 +157,47 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 TextButton(
                   onPressed: _refresh,
                   child: const Text('RETRY',
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+
+          // Sync health warning (needs migration)
+          if (syncHealth == SyncHealth.needsMigration)
+            MaterialBanner(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              leading: const Icon(Icons.sync_problem_rounded, color: Colors.white),
+              backgroundColor: Colors.red.shade700,
+              content: const Text(
+                'Cloud sync is broken — your Supabase table needs a one-time migration. '
+                'Providers may not sync across devices.',
+                style: TextStyle(color: Colors.white),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => context.push('/settings'),
+                  child: const Text('FIX NOW',
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+
+          // Sync unreachable warning
+          if (syncHealth == SyncHealth.unreachable)
+            MaterialBanner(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              leading: const Icon(Icons.cloud_off_rounded, color: Colors.white),
+              backgroundColor: Colors.orange.shade700,
+              content: const Text(
+                'Cloud sync unavailable — check your Supabase URL and key in Settings.',
+                style: TextStyle(color: Colors.white),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => context.push('/settings'),
+                  child: const Text('CHECK SETTINGS',
                       style: TextStyle(
                           color: Colors.white, fontWeight: FontWeight.bold)),
                 ),

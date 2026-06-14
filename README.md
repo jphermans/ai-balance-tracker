@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.44+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-17.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-|[![Version](https://img.shields.io/badge/version-3.1.7-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+|[![Version](https://img.shields.io/badge/version-3.1.8-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 [![macOS](https://img.shields.io/badge/macOS-13.0+-000000?logo=apple)](https://apple.com/macos)
 [![Web](https://img.shields.io/badge/web-live-4285F4?logo=googlechrome)](https://jphermans.github.io/ai-balance-tracker)
 
@@ -624,6 +624,10 @@ These are baked into the app at build time via `--dart-define`.
 End users can still override them from Settings → Cloud Sync.
 
 ## Version History
+
+### v3.1.8
+- **Sync health check — detect broken Supabase migration from the app** — new `SyncHealthNotifier` queries the `provider_configs` table on startup and checks whether any `provider_id` has rows from multiple different `user_id` values. If so, the old per-user schema is still active and `onConflict: 'provider_id'` upserts are silently failing → no cross-device sync. The app now shows a red warning banner on the dashboard with a "FIX NOW" button that takes the user to Settings.
+- **Sync unreachable warning** — if Supabase is configured but unreachable, an orange banner appears instead of silent failure.
 
 ### v3.1.7
 - **Fix wrong API path display in Raw API Response section** — `provider_detail_screen.dart` `_apiPath()` returned incorrect endpoint paths for several providers. OpenRouter showed `/api/v1/credits` (double `/api/` with base URL), Together showed `/v1/billing` (should be `/v1/billing/cost_details`). Fixed to show correct developer-facing paths.

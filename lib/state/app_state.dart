@@ -160,6 +160,77 @@ final pinProvider = StateNotifierProvider<PinNotifier, bool>((ref) {
   return PinNotifier();
 });
 
+/// Sync health status checked on startup.
+enum SyncHealth {
+  /// Cloud sync is working correctly.
+  ok,
+  /// Supabase not configured — local-only mode.
+  notConfigured,
+  /// Supabase configured but can't reach it.
+  unreachable,
+  /// Table has old per-user RLS policy — upserts will silently fail.
+  /// User needs to run the step 3b migration SQL.
+  needsMigration,
+}
+
+/// Checks if the Supabase table is correctly migrated for cross-device sync.
+/// Detects the broken state where the old `UNIQUE(user_id, provider_id)` +
+/// per-user RLS policy causes upserts to silently fail or produce duplicates.
+class SyncHealthNotifier extends StateNotifier<SyncHealth> {
+  SyncHealthNotifier() : super(SyncHealth.notConfigured) {
+    _check();
+  }
+
+  Future<void> _check() async {
+    if (!SupabaseService.isInitialized) {
+      state = SyncHealth.notConfigured;
+      return;
+    }
+
+    try {
+      // Query: if we see rows from multiple different user_ids for the same
+      // provider_id, the old schema is in place and sync is broken.
+      final response = await SupabaseService.client
+          .from('provider_configs')
+          .select('provider_id, user_id')
+          .limit(100);
+
+      final rows = (response as List<dynamic>).cast<Map<String, dynamic>>();
+      if (rows.isEmpty) {
+        // Empty table — can't detect schema, assume OK
+        state = SyncHealth.ok;
+        return;
+      }
+
+      // Group by provider_id, collect distinct user_ids per provider
+      final byProvider = <String, Set<String>>{};
+      for (final row in rows) {
+        final pid = row['provider_id'] as String?;
+        final uid = row['user_id'] as String?;
+        if (pid == null || uid == null) continue;
+        byProvider.putIfAbsent(pid, () => {}).add(uid);
+      }
+
+      // If any provider has rows from multiple user_ids, old schema is active
+      final hasMultiUser = byProvider.values.any((users) => users.length > 1);
+      if (hasMultiUser) {
+        state = SyncHealth.needsMigration;
+      } else {
+        state = SyncHealth.ok;
+      }
+    } catch (e) {
+      state = SyncHealth.unreachable;
+    }
+  }
+
+  Future<void> refresh() async => _check();
+}
+
+final syncHealthProvider =
+    StateNotifierProvider<SyncHealthNotifier, SyncHealth>((ref) {
+  return SyncHealthNotifier();
+});
+
 final isLoadingProvider = Provider<bool>((ref) {
   return ref.watch(balancesProvider.notifier).isLoading;
 });
