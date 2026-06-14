@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.44+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-17.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-|[![Version](https://img.shields.io/badge/version-3.1.6-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+|[![Version](https://img.shields.io/badge/version-3.1.7-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 [![macOS](https://img.shields.io/badge/macOS-13.0+-000000?logo=apple)](https://apple.com/macos)
 [![Web](https://img.shields.io/badge/web-live-4285F4?logo=googlechrome)](https://jphermans.github.io/ai-balance-tracker)
 
@@ -624,6 +624,10 @@ These are baked into the app at build time via `--dart-define`.
 End users can still override them from Settings → Cloud Sync.
 
 ## Version History
+
+### v3.1.7
+- **Fix wrong API path display in Raw API Response section** — `provider_detail_screen.dart` `_apiPath()` returned incorrect endpoint paths for several providers. OpenRouter showed `/api/v1/credits` (double `/api/` with base URL), Together showed `/v1/billing` (should be `/v1/billing/cost_details`). Fixed to show correct developer-facing paths.
+- **Analyzer cleanup** — removed unused `starPaint` variable in `splash_screen.dart`, unused `_delete()` method in `secure_storage_service.dart`, unused `pin_service.dart` import in `pin_setup_screen.dart`, unnecessary non-null assertion `!` in `dashboard_screen.dart`, unnecessary double underscore `__` in `app_state.dart`, and unnecessary braces in string interpolations in `app.dart` and `model_info.dart`.
 
 ### v3.1.6
 - **Fix cross-device sync (root cause)** — `EncryptionService` key derivation now uses the Supabase project credentials (URL + publishable key) hashed with SHA-256, instead of the per-device anonymous user_id. **This was the actual blocker for cross-device sync:** anonymous auth gives each device a different `user_id`, so the old key derivation produced a different AES-256 key on every device. Device B could never decrypt rows written by device A (GCM auth tag failed → `tryDecrypt` returned `null` → row silently dropped by `SyncService._fromRow`). Now every device pointing at the same Supabase project derives the same key and can read each other's API keys. The legacy per-user-id derivation is kept as a fallback so locally-written data from older app versions remains decryptable on the device that wrote it. Added two new unit tests: cross-device round-trip with the same project key (succeeds) and isolation between different projects (fails GCM auth). `EncryptionService.initialize(supabaseUrl, publishableKey)` is now called from `main.dart` after Supabase init and before any sync.

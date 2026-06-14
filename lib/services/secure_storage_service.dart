@@ -45,15 +45,6 @@ class SecureStorageService {
     }
   }
 
-  static Future<void> _delete(String key) async {
-    if (_useSecure) {
-      await _secure.delete(key: key);
-    } else {
-      final p = await _prefs;
-      await p.remove(key);
-    }
-  }
-
   static Future<void> deleteAll() async {
     if (_useSecure) {
       await _secure.deleteAll();

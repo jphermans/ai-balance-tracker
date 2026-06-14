@@ -53,7 +53,7 @@ class ModelInfo {
     if (contextWindow! >= 1000) {
       return '${(contextWindow! / 1000).toStringAsFixed(0)}K ctx';
     }
-    return '${contextWindow} ctx';
+    return '$contextWindow ctx';
   }
 
   /// Known pricing & context window for popular models (USD per 1M tokens).

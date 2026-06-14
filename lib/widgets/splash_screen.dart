@@ -263,7 +263,6 @@ class _CardIconPainter extends CustomPainter {
     // AI Sparkle (4-point star)
     final scx = cx + cardW / 2;
     final scy = cy + stripHeight + (cardH - stripHeight) / 2;
-    final starPaint = Paint()..style = PaintingStyle.fill;
 
     // Outer glow
     canvas.drawCircle(

@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, Tar
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../services/pin_service.dart';
+
 import '../state/app_state.dart';
 import 'package:go_router/go_router.dart';
 import '../widgets/pin_pad.dart';

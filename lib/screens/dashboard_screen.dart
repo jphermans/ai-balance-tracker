@@ -223,7 +223,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                         child: Center(
                           child: Text(
-                            'Last refreshed ${_formatTimestamp(lastRefreshed!)}',
+                            'Last refreshed ${_formatTimestamp(lastRefreshed)}',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant
                                   .withValues(alpha: 0.6),

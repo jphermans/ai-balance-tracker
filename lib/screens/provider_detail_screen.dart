@@ -381,11 +381,11 @@ class _ProviderDetailScreenState extends ConsumerState<ProviderDetailScreen> {
       case ProviderType.deepseek:
         return '/user/balance';
       case ProviderType.openrouter:
-        return '/api/v1/credits';
+        return '/v1/credits';
       case ProviderType.groq:
         return '/openai/v1/models';
       case ProviderType.together:
-        return '/v1/billing';
+        return '/v1/billing/cost_details';
       case ProviderType.siliconflow:
         return '/v1/user/info';
       case ProviderType.moonshot:

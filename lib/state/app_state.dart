@@ -182,6 +182,6 @@ final isOfflineProvider = Provider<bool>((ref) {
     data: (results) => results.isEmpty ||
         results.every((r) => r == ConnectivityResult.none),
     loading: () => false, // assume online while checking
-    error: (_, __) => false,
+    error: (_, _) => false,
   );
 });

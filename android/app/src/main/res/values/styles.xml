@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark splash theme matching the deep navy → violet gradient splash screen -->
+    <style name="LaunchTheme" parent="@android:style/Theme.NoTitleBar">
+        <item name="android:windowBackground">@drawable/launch_background</item>
+        <item name="android:navigationBarColor">#FF0A0F23</item>
+        <item name="android:statusBarColor">#FF0A0F23</item>
+    </style>
+    <!-- Normal theme for after Flutter loads -->
+    <style name="NormalTheme" parent="@android:style/Theme.NoTitleBar">
+        <item name="android:windowBackground">?android:colorBackground</item>
+    </style>
+</resources>
