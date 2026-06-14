@@ -44,6 +44,9 @@ class SyncService {
     // own userId, so the same encrypted blob works across devices that
     // share the same per-device encryption secret (see
     // EncryptionService for the cross-device key derivation).
+    // NOTE: we do NOT include user_id in the payload — the table has
+    // no user_id column after the step-3b migration, and PostgREST
+    // would reject the insert with a 400.
     await _db.from('provider_configs').upsert({
       'provider_id': config.id,
       'type': config.type.name,

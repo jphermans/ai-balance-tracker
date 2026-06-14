@@ -176,7 +176,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => context.push('/settings'),
+                  onPressed: () => context.push('/sync-fix'),
                   child: const Text('FIX NOW',
                       style: TextStyle(
                           color: Colors.white, fontWeight: FontWeight.bold)),

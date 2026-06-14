@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.44+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-17.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-|[![Version](https://img.shields.io/badge/version-3.1.8-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+|[![Version](https://img.shields.io/badge/version-3.1.9-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 [![macOS](https://img.shields.io/badge/macOS-13.0+-000000?logo=apple)](https://apple.com/macos)
 [![Web](https://img.shields.io/badge/web-live-4285F4?logo=googlechrome)](https://jphermans.github.io/ai-balance-tracker)
 
@@ -624,6 +624,11 @@ These are baked into the app at build time via `--dart-define`.
 End users can still override them from Settings → Cloud Sync.
 
 ## Version History
+
+### v3.1.9
+- **Fix sync upsert still sending `user_id`** — `SyncService.upsert()` was including `user_id` in the PostgREST upsert payload, but the migrated table (step 3b) has no `user_id` column. PostgREST rejects the write with a 400 error, which was silently caught by `catchError` — leaving the user with no visible symptom other than "sync doesn't work." Now the payload contains only `provider_id` (the unique key), `type`, `api_key` (encrypted), `org_id`, `account_id`, `custom_endpoint`, `enabled`, and `updated_at`.
+- **Fix double splash screen** — `SplashScreen.onDone` called `setState(() => _showSplash = false)` which triggered a full `AIBalanceApp` rebuild, re-evaluating `_showSplash` as `true` and re-mounting the splash screen before the previous one was fully torn down. Fixed by switching to a `_splashComplete` flag and checking `mounted` in the callback.
+- **New dedicated Sync Fix page** (`/sync-fix`) — replaces the "FIX NOW" banner button that pointed to Settings. Shows a step-by-step migration assistant with the SQL statements, one-tap copy-to-clipboard for each step, an inline schema verification that runs on page open and updates live, and a green success card when the migration is confirmed applied.
 
 ### v3.1.8
 - **Sync health check — detect broken Supabase migration from the app** — new `SyncHealthNotifier` queries the `provider_configs` table on startup and checks whether any `provider_id` has rows from multiple different `user_id` values. If so, the old per-user schema is still active and `onConflict: 'provider_id'` upserts are silently failing → no cross-device sync. The app now shows a red warning banner on the dashboard with a "FIX NOW" button that takes the user to Settings.

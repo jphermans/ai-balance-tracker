@@ -12,6 +12,7 @@ import 'models/provider_config.dart';
 import 'screens/pin_unlock_screen.dart';
 import 'screens/pin_setup_screen.dart';
 import 'screens/about_screen.dart';
+import 'screens/sync_fix_screen.dart';
 import 'widgets/splash_screen.dart';
 
 final _routerProvider = Provider<GoRouter>((ref) {
@@ -53,6 +54,11 @@ final _routerProvider = Provider<GoRouter>((ref) {
         name: 'about',
         builder: (context, state) => const AboutScreen(),
       ),
+      GoRoute(
+        path: '/sync-fix',
+        name: 'sync-fix',
+        builder: (context, state) => const SyncFixScreen(),
+      ),
     ],
   );
 });
@@ -65,7 +71,7 @@ class AIBalanceApp extends ConsumerStatefulWidget {
 }
 
 class _AIBalanceAppState extends ConsumerState<AIBalanceApp> {
-  bool _showSplash = true;
+  bool _splashComplete = false;
   bool _unlocked = false;
   bool _pinSet = false;
 
@@ -74,8 +80,9 @@ class _AIBalanceAppState extends ConsumerState<AIBalanceApp> {
     final themeMode = ref.watch(themeModeProvider);
     final hasPin = ref.watch(pinProvider);
 
-    // Show branded splash screen first
-    if (_showSplash) {
+    // Show branded splash screen once; once _splashComplete is true we
+    // never return to it — _splashComplete is set once and sticky.
+    if (!_splashComplete) {
       return MaterialApp(
         title: 'AI Balance Tracker',
         debugShowCheckedModeBanner: false,
@@ -83,7 +90,12 @@ class _AIBalanceAppState extends ConsumerState<AIBalanceApp> {
         darkTheme: AppTheme.dark,
         themeMode: themeMode,
         home: SplashScreen(
-          onDone: () => setState(() => _showSplash = false),
+          onDone: () {
+            // Check mounted because this callback can fire during a rebuild
+            // of the parent AIBalanceApp, which would cause setState on a
+            // widget that's being unmounted — triggering a double splash.
+            if (mounted) setState(() => _splashComplete = true);
+          },
         ),
       );
     }
