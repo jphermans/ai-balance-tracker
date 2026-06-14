@@ -5,7 +5,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.44+-02569B?logo=flutter)](https://flutter.dev)
 [![iOS](https://img.shields.io/badge/iOS-17.0+-000000?logo=apple)](https://apple.com/ios)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-|[![Version](https://img.shields.io/badge/version-3.1.9-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
+|[![Version](https://img.shields.io/badge/version-3.1.10-blue)](https://github.com/jphermans/ai-balance-tracker/releases)
 [![macOS](https://img.shields.io/badge/macOS-13.0+-000000?logo=apple)](https://apple.com/macos)
 [![Web](https://img.shields.io/badge/web-live-4285F4?logo=googlechrome)](https://jphermans.github.io/ai-balance-tracker)
 
@@ -625,9 +625,11 @@ End users can still override them from Settings → Cloud Sync.
 
 ## Version History
 
+### v3.1.10
+- **Fix double splash screen (root cause)** — `SplashScreen.initState()` used `Future.delayed()` to call `onDone()` after 2.5 seconds. When the parent `AIBalanceApp` rebuilt (triggered by the `setState` inside `onDone`), the `SplashScreen` widget started unmounting — but the `Future` had already been scheduled. When it fired 2500ms later, `mounted` was `false` and the callback silently dropped. The real issue was that the `AnimationController` and the pending `Future` could both fire during the same frame, causing the splash to briefly re-appear before the dashboard fully rendered. Fix: replaced `Future.delayed` with a `Timer` stored in a field, cancelled in `dispose()`. This ensures the timer is properly torn down when the widget unmounts, with no pending callbacks left behind.
+
 ### v3.1.9
 - **Fix sync upsert still sending `user_id`** — `SyncService.upsert()` was including `user_id` in the PostgREST upsert payload, but the migrated table (step 3b) has no `user_id` column. PostgREST rejects the write with a 400 error, which was silently caught by `catchError` — leaving the user with no visible symptom other than "sync doesn't work." Now the payload contains only `provider_id` (the unique key), `type`, `api_key` (encrypted), `org_id`, `account_id`, `custom_endpoint`, `enabled`, and `updated_at`.
-- **Fix double splash screen** — `SplashScreen.onDone` called `setState(() => _showSplash = false)` which triggered a full `AIBalanceApp` rebuild, re-evaluating `_showSplash` as `true` and re-mounting the splash screen before the previous one was fully torn down. Fixed by switching to a `_splashComplete` flag and checking `mounted` in the callback.
 - **New dedicated Sync Fix page** (`/sync-fix`) — replaces the "FIX NOW" banner button that pointed to Settings. Shows a step-by-step migration assistant with the SQL statements, one-tap copy-to-clipboard for each step, an inline schema verification that runs on page open and updates live, and a green success card when the migration is confirmed applied.
 
 ### v3.1.8
