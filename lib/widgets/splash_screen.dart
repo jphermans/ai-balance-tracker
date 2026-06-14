@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../app_version.dart';
@@ -18,6 +19,7 @@ class _SplashScreenState extends State<SplashScreen>
   late final AnimationController _controller;
   late final Animation<double> _fadeIn;
   late final Animation<double> _scale;
+  Timer? _doneTimer;
 
   @override
   void initState() {
@@ -37,14 +39,17 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // Hold for 2.5 seconds total then call onDone
-    Future.delayed(const Duration(milliseconds: 2500), () {
+    // Hold for 2.5 seconds then call onDone. Stored so we can cancel it
+    // if this widget is unmounted before the timer fires (e.g. if the
+    // parent AIBalanceAppState rebuilds during the transition).
+    _doneTimer = Timer(const Duration(milliseconds: 2500), () {
       if (mounted) widget.onDone();
     });
   }
 
   @override
   void dispose() {
+    _doneTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
