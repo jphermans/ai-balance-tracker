@@ -39,7 +39,7 @@ BAR_COLORS = [
 ]
 TEXT_PRIMARY     = (255, 255, 255, 230)
 TEXT_SECONDARY   = (255, 255, 255, 128)
-TEXT_VERSION     = (255, 255, 255, 64)
+
 TEXT_BRAND       = (255, 255, 255, 50)
 
 # ── Fonts ─────────────────────────────────────────────────────────────
@@ -219,7 +219,7 @@ def draw_card_icon(draw: ImageDraw.ImageDraw, cx: float, cy: float, s: float):
         )
 
 
-def generate(w: int = 1284, h: int = 2778, version: str = "1.0.0"):
+def generate(w: int = 1284, h: int = 2778):
     """Generate splash image."""
     img = Image.new("RGBA", (w, h))
     draw = ImageDraw.Draw(img)
@@ -238,7 +238,6 @@ def generate(w: int = 1284, h: int = 2778, version: str = "1.0.0"):
     # ── Text ──
     title_font = _find_font(int(shortest * 0.07)) or ImageFont.load_default()
     subtitle_font = _find_font(int(shortest * 0.045)) or ImageFont.load_default()
-    version_font = _find_font(26) or ImageFont.load_default()
     brand_font = _find_font(22) or ImageFont.load_default()
     
     text_y = h * 0.38 + card_w * 0.68 / 2 + shortest * 0.06
@@ -257,15 +256,6 @@ def generate(w: int = 1284, h: int = 2778, version: str = "1.0.0"):
     draw.text(
         (w / 2 - sw / 2, text_y + shortest * 0.07 + shortest * 0.015),
         "Tracker", font=subtitle_font, fill=TEXT_SECONDARY
-    )
-    
-    # Version
-    vtext = f"v{version}"
-    vbbox = draw.textbbox((0, 0), vtext, font=version_font)
-    vw = vbbox[2] - vbbox[0]
-    draw.text(
-        (w / 2 - vw / 2, h - 140),
-        vtext, font=version_font, fill=TEXT_VERSION
     )
     
     # JPHsystems
